@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panorama Fiscal do DF</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  /* ── DADOS ATUALIZÁVEIS — edite apenas esta seção ─────────────────
+     Próxima atualização prevista: bimestral (dados Siconfi/Tesouro)
+  ─────────────────────────────────────────────────────────────────── */
+
+  :root {
+    --g900: #173404;
+    --g800: #27500A;
+    --g700: #3B6D11;
+    --g600: #4a8a14;
+    --g500: #639922;
+    --g400: #7ab82a;
+    --g300: #97C459;
+    --g200: #C0DD97;
+    --g100: #EAF3DE;
+    --g50:  #f4f9ec;
+    --red:  #c0392b;
+    --amber:#c47a10;
+    --blue: #1a5fa6;
+    --gray: #4a5568;
+    --lgray:#718096;
+    --bg:   #ffffff;
+    --card: #f8faf5;
+    --border: #d4e8b8;
+    --text: #1a202c;
+    --muted:#4a5568;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--g800);
+    padding: 28px 32px 24px;
+    border-bottom: 4px solid var(--g500);
+  }
+  .header h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.3px;
+  }
+  .header p {
+    font-size: 13px;
+    color: var(--g200);
+    margin-top: 4px;
+  }
+
+  /* NAV */
+  nav {
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    display: flex;
+    gap: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    overflow-x: auto;
+  }
+  nav a {
+    display: block;
+    padding: 14px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    text-decoration: none;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+    transition: color .15s, border-color .15s;
+  }
+  nav a:hover { color: var(--g700); border-color: var(--g300); }
+  nav a.active { color: var(--g700); border-color: var(--g600); }
+
+  /* MAIN */
+  main { max-width: 1100px; margin: 0 auto; padding: 32px 24px 60px; }
+
+  /* SECTION */
+  .section { margin-bottom: 52px; scroll-margin-top: 56px; }
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--g700);
+    border-bottom: 2px solid var(--g200);
+    padding-bottom: 8px;
+    margin-bottom: 20px;
+  }
+
+  /* KPI STRIP */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .kpi {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 14px 14px;
+    border-top: 3px solid var(--g500);
+  }
+  .kpi.red   { border-top-color: var(--red); }
+  .kpi.amber { border-top-color: var(--amber); }
+  .kpi.blue  { border-top-color: var(--blue); }
+  .kpi-val {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 4px;
+  }
+  .kpi-val.green { color: var(--g700); }
+  .kpi-val.red   { color: var(--red); }
+  .kpi-val.amber { color: var(--amber); }
+  .kpi-val.blue  { color: var(--blue); }
+  .kpi-label { font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 2px; }
+  .kpi-sub   { font-size: 11.5px; color: var(--lgray); }
+
+  /* TWO-COL */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+  @media (max-width: 680px) { .two-col { grid-template-columns: 1fr; } }
+
+  .three-col {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  @media (max-width: 720px) { .three-col { grid-template-columns: 1fr; } }
+
+  /* CARD */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 16px;
+  }
+  .card-title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--g700);
+    margin-bottom: 14px;
+  }
+
+  /* TABLE */
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th {
+    background: var(--g100);
+    color: var(--g800);
+    font-weight: 600;
+    font-size: 12px;
+    padding: 8px 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  td { padding: 7px 10px; border-bottom: 1px solid #eef3e8; }
+  tr:last-child td { border-bottom: none; }
+  tr.hl-red td  { background: #fef5f5; }
+  tr.hl-green td{ background: #f2f9ec; }
+  tr.hl-amber td{ background: #fdfaf0; }
+  .badge {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 13px;
+  }
+  .badge-green { background: var(--g100); color: var(--g800); }
+  .badge-red   { background: #fde8e8;    color: #8b1c1c; }
+  .badge-amber { background: #fef3dc;    color: #7a4a0a; }
+  .badge-blue  { background: #e8f0fd;    color: #1a3f7a; }
+
+  /* BULLET LIST */
+  ul.data-list { list-style: none; padding: 0; }
+  ul.data-list li {
+    padding: 5px 0 5px 20px;
+    position: relative;
+    font-size: 13.5px;
+    color: var(--text);
+    border-bottom: 1px solid #eef3e8;
+  }
+  ul.data-list li:last-child { border-bottom: none; }
+  ul.data-list li::before {
+    content: '';
+    position: absolute;
+    left: 4px; top: 13px;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--g500);
+  }
+  ul.data-list li.suspended::before { background: var(--amber); }
+
+  /* GAUGE BAR */
+  .gauge-wrap { margin: 8px 0 20px; }
+  .gauge-track {
+    height: 18px;
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+    border: 1px solid var(--border);
+  }
+  .gauge-seg { height: 100%; }
+  .gauge-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--lgray);
+    margin-top: 4px;
+  }
+  .gauge-pointer-row {
+    position: relative;
+    height: 22px;
+    margin-top: 2px;
+  }
+  .gauge-pointer {
+    position: absolute;
+    transform: translateX(-50%);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--g800);
+    background: var(--g100);
+    border: 1px solid var(--g400);
+    border-radius: 4px;
+    padding: 1px 6px;
+  }
+  .gauge-pointer::before {
+    content: '▲';
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 8px;
+    color: var(--g600);
+  }
+
+  /* AGENDA BOXES */
+  .agenda-box {
+    border-radius: 10px;
+    padding: 18px 16px;
+    border: 1.5px solid;
+  }
+  .agenda-box h3 {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+  }
+  .agenda-box ul { list-style: none; padding: 0; }
+  .agenda-box li {
+    font-size: 13.5px;
+    padding: 5px 0 5px 16px;
+    position: relative;
+    border-bottom: 1px solid rgba(0,0,0,.06);
+  }
+  .agenda-box li:last-child { border-bottom: none; }
+  .agenda-box li::before {
+    content: '›';
+    position: absolute; left: 0;
+    font-weight: 700;
+  }
+  .a-green { border-color: var(--g500); background: #f4faea; }
+  .a-green h3, .a-green li::before { color: var(--g700); }
+  .a-blue  { border-color: #5b9bd5; background: #f0f5fd; }
+  .a-blue  h3, .a-blue  li::before { color: #1a5fa6; }
+  .a-amber { border-color: #d4a840; background: #fdfaf0; }
+  .a-amber h3, .a-amber li::before { color: #7a4a0a; }
+
+  /* FOOTER */
+  footer {
+    text-align: center;
+    font-size: 11.5px;
+    color: var(--lgray);
+    padding: 24px 24px 40px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* HIGHLIGHT BOX */
+  .highlight {
+    background: var(--g50);
+    border-left: 4px solid var(--g500);
+    border-radius: 0 8px 8px 0;
+    padding: 10px 14px;
+    font-size: 13px;
+    margin: 12px 0;
+  }
+  .highlight strong { color: var(--g800); }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     DADOS — edite os valores abaixo para atualizar o painel
+     Última atualização: abril/2026
+═══════════════════════════════════════════════════════════════════ -->
+<script>
+const DADOS = {
+  atualizacao: 'Abril 2026',
+  kpis: [
+    { label: 'Orçamento do DF 2026',   valor: 'R$ 45,9 bi',  sub: 'Receitas previstas',            cor: 'blue'  },
+    { label: 'FCDF 2026',              valor: 'R$ 28,4 bi',  sub: '38% da despesa total (2025)',    cor: 'blue'  },
+    { label: 'Investimento / RCL',     valor: '4,7%',        sub: '20º lugar no Brasil',            cor: 'amber' },
+    { label: 'Nota CAPAG',             valor: 'C',           sub: 'Poupança corrente: 95,27%',      cor: 'red'   },
+    { label: 'Caixa Líquido',          valor: 'R$ 570 mi',   sub: 'Queda de 70% vs. 2021',         cor: 'red'   },
+    { label: 'Benefícios Tributários', valor: 'R$ 11,3 bi',  sub: '43% da rec. de impostos',       cor: 'amber' },
+  ],
+  investimento: {
+    nota:  20,
+    varMediaNacional: '+R$ 1,5 bi/ano',
+    varLiderPI:       '+R$ 4,8 bi/ano',
+    mediaPerCapita:   '12º no país (per capita)',
+    evolucaoAbsoluta: 'R$ 0,7 bi (2021) → R$ 1,8 bi (2025)',
+    ranking: [
+      { estado: 'PI — 1º lugar',   pct: 17.0, cor: 'red' },
+      { estado: 'ES',              pct: 14.8, cor: '' },
+      { estado: 'MA',              pct: 14.0, cor: '' },
+      { estado: 'GO',              pct: 12.6, cor: '' },
+      { estado: 'Média BR',        pct:  8.4, cor: 'amber' },
+      { estado: 'DF — 20º lugar',  pct:  4.7, cor: 'red' },
+      { estado: 'SP',              pct:  4.6, cor: '' },
+      { estado: 'RN — último',     pct:  3.1, cor: '' },
+    ],
+    caixaInvest: [
+      { ano: '2021', val: 0.7 },
+      { ano: '2022', val: 1.1 },
+      { ano: '2023', val: 1.3 },
+      { ano: '2024', val: 1.5 },
+      { ano: '2025', val: 1.8 },
+    ],
+  },
+  capag: {
+    nota: 'C',
+    indicadores: [
+      { nome: 'Endividamento',     nota: 'A', valor: '30,85%', obs: 'Espaço: R$ 11,4 bi até nota B', badge: 'green' },
+      { nome: 'Poup. Corrente',    nota: 'C', valor: '95,27%', obs: 'Acima de 95%: causa da nota C', badge: 'red'   },
+      { nome: 'Liquidez Relativa', nota: 'B', valor: '1,01%',  obs: 'Entre 0% e 5%',                badge: 'amber' },
+    ],
+    historico: [
+      { ano: '2020', nota: 'C', badge: 'red' },
+      { ano: '2021', nota: 'B', badge: 'amber' },
+      { ano: '2022', nota: 'B', badge: 'amber' },
+      { ano: '2023', nota: 'B', badge: 'amber' },
+      { ano: '2024', nota: 'C', badge: 'red' },
+      { ano: '2025', nota: 'C', badge: 'red' },
+    ],
+    caixa: [
+      { ano: '2021', val: 1920, hl: 'green' },
+      { ano: '2022', val: 1581, hl: 'green' },
+      { ano: '2023', val: 2897, hl: 'green' },
+      { ano: '2024', val: 1868, hl: 'amber' },
+      { ano: '2025', val:  570, hl: 'red'   },
+    ],
+    caixaNaoVinculado: '−R$ 876,6 mi (negativo)',
+  },
+  pessoal: {
+    atual_pct: 41.5,
+    alerta:    44.1,
+    prudencial:46.55,
+    maximo:    49.0,
+    escala_min:35,
+    escala_max:51,
+    espaco_alerta_bi: 'R$ 1,0 bi',
+  },
+  rankingCLP: {
+    posicao: 20,
+    variacao: -8,
+    referencia: '2024',
+    itens: [
+      { ind: 'Taxa de Investimentos',             pos: '25º', badge: 'red'   },
+      { ind: 'Sucesso Planejamento Orçamentário', pos: '23º', badge: 'red'   },
+      { ind: 'Resultado Primário',                pos: '22º', badge: 'red'   },
+      { ind: 'Índice de Liquidez',                pos: '22º', badge: 'amber' },
+      { ind: 'Regra de Ouro',                     pos: '23º', badge: 'amber' },
+    ],
+  },
+  ppps: {
+    comprometimentoAtual_pct: 0.23,
+    comprometimentoAtual_val: 'R$ 152 mi',
+    pico_ano: 2026,
+    pico_pct: 3.16,
+    lista: [
+      { nome: 'Nova Saída Norte',                          status: 'Contratada' },
+      { nome: 'Avenida das Cidades',                       status: 'Contratada' },
+      { nome: 'Gestão do Aterro Sanitário de Brasília',    status: 'Contratada' },
+      { nome: 'Ecoparque',                                 status: 'Contratada' },
+      { nome: 'Logística de Medicamentos',                 status: 'Contratada' },
+      { nome: 'Rede de Apoio de Diagnóstico',              status: 'Contratada' },
+      { nome: 'Transporte Metroviário',                    status: 'Em contratação' },
+      { nome: 'VLT na W3',                                 status: 'Em contratação' },
+      { nome: 'Processamento de roupas — Saúde',           status: 'Em contratação' },
+      { nome: 'BRT Sul e Oeste',                           status: 'Suspenso' },
+    ],
+    projecao: [
+      { ano: '2024', pct: 0.13 },
+      { ano: '2025', pct: 0.23 },
+      { ano: '2026', pct: 3.16 },
+      { ano: '2027', pct: 2.99 },
+      { ano: '2028', pct: 2.86 },
+      { ano: '2029', pct: 2.70 },
+    ],
+  },
+  agenda: [
+    { titulo: '1. Revisão do gasto direto', classe: 'a-green', itens: [
+      'Spending review de contratos e serviços continuados',
+      'Avaliação de efetividade de políticas e programas',
+      'Redesenho de programas sociais com baixa cobertura',
+    ]},
+    { titulo: '2. Receita e incentivos tributários', classe: 'a-blue', itens: [
+      'Auditoria dos R$ 11,3 bi em benefícios fiscais',
+      'ICMS representa 85% das renúncias — foco aqui',
+      'Revisão cadastral e de base de cálculo do IPTU',
+    ]},
+    { titulo: '3. Poupança corrente e governança', classe: 'a-amber', itens: [
+      'Reconstruir superávits correntes (sair da nota C)',
+      'Marco fiscal de médio prazo com metas plurianuais',
+      'Criar Junta / Comitê Fiscal permanente',
+    ]},
+  ],
+};
+</script>
+
+<!-- ═══════════════════════ ESTRUTURA HTML ══════════════════════════ -->
+
+<header class="header">
+  <h1>Panorama Fiscal do DF</h1>
+  <p id="data-ref"></p>
+</header>
+
+<nav id="nav">
+  <a href="#visao-geral" class="active">Visão Geral</a>
+  <a href="#investimento">Investimento</a>
+  <a href="#capag">CAPAG e Caixa</a>
+  <a href="#pessoal">Pessoal / LRF</a>
+  <a href="#ppps">PPPs</a>
+  <a href="#agenda">Agenda</a>
+</nav>
+
+<main>
+
+  <!-- VISÃO GERAL -->
+  <section class="section" id="visao-geral">
+    <div class="section-title">Visão Geral</div>
+    <div class="kpi-grid" id="kpi-grid"></div>
+    <p style="font-size:12px;color:var(--lgray);margin-top:6px;">Fontes: Siconfi/STN · Tesouro Nacional · TCDF · CLP · Beneficiômetro SEEC — <span id="data-ref2"></span></p>
+  </section>
+
+  <!-- INVESTIMENTO -->
+  <section class="section" id="investimento">
+    <div class="section-title">Investimento Público</div>
+    <div class="two-col">
+      <div>
+        <div class="card">
+          <div class="card-title">Diagnóstico</div>
+          <div id="inv-bullets"></div>
+        </div>
+        <div style="margin-top:16px;" class="card">
+          <div class="card-title">Evolução absoluta (R$ bilhões)</div>
+          <div style="position:relative;height:140px;"><canvas id="chartInvAbs" role="img" aria-label="Evolução dos investimentos do DF de 2021 a 2025 em bilhões de reais"></canvas></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Ranking investimento/RCL por estado — 2025</div>
+        <table id="inv-ranking"></table>
+      </div>
+    </div>
+  </section>
+
+  <!-- CAPAG -->
+  <section class="section" id="capag">
+    <div class="section-title">CAPAG e Disponibilidade de Caixa</div>
+    <div class="two-col">
+      <div>
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-title">CAPAG — Nota Consolidada: <span style="color:var(--red);font-size:18px;">C</span></div>
+          <table id="capag-table"></table>
+          <div style="margin-top:14px;">
+            <div class="card-title" style="margin-bottom:8px;">Histórico consolidado</div>
+            <div id="capag-hist" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Disponibilidade de caixa líquido (R$ mi)</div>
+        <div style="position:relative;height:180px;"><canvas id="chartCaixa" role="img" aria-label="Evolução da disponibilidade de caixa líquido do DF de 2021 a 2025"></canvas></div>
+        <div id="caixa-obs" class="highlight" style="margin-top:14px;"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PESSOAL -->
+  <section class="section" id="pessoal">
+    <div class="section-title">Despesa com Pessoal / LRF e Ranking de Competitividade</div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">Poder Executivo — % da RCL (3T2025)</div>
+        <div class="gauge-wrap" id="gauge-wrap"></div>
+        <table id="pessoal-table"></table>
+      </div>
+      <div class="card">
+        <div class="card-title">Ranking CLP — Solidez Fiscal (<span id="clp-ref"></span>): <span id="clp-pos" style="color:var(--red);"></span></div>
+        <table id="clp-table"></table>
+      </div>
+    </div>
+  </section>
+
+  <!-- PPPs -->
+  <section class="section" id="ppps">
+    <div class="section-title">Parcerias Público-Privadas (PPPs)</div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">PPPs contratadas e em contratação</div>
+        <ul class="data-list" id="ppp-list"></ul>
+        <div style="margin-top:12px;font-size:11.5px;color:var(--lgray);display:flex;gap:14px;flex-wrap:wrap;">
+          <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--g500);margin-right:4px;"></span>Contratada</span>
+          <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--blue);margin-right:4px;"></span>Em contratação</span>
+          <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--amber);margin-right:4px;"></span>Suspenso</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Comprometimento da RCL com PPPs (%)</div>
+        <div id="ppp-kpis" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;"></div>
+        <div style="position:relative;height:180px;"><canvas id="chartPPP" role="img" aria-label="Projeção do comprometimento da RCL com PPPs de 2024 a 2029"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- AGENDA -->
+  <section class="section" id="agenda">
+    <div class="section-title">Agenda de Recuperação Fiscal — 3 Eixos Prioritários</div>
+    <div class="three-col" id="agenda-grid"></div>
+  </section>
+
+</main>
+
+<footer>
+  Panorama Fiscal do DF · Fontes: Siconfi/STN · Tesouro Nacional · Painel TCDF · Beneficiômetro SEEC · Centro de Liderança Pública (CLP) · RREO dez/2025 · <span id="data-ref3"></span>
+</footer>
+
+<script>
+// ─── render helpers ───────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+
+function badge(nota, tipo) {
+  return `<span class="badge badge-${tipo}">${nota}</span>`;
+}
+
+// data ref
+['data-ref','data-ref2','data-ref3'].forEach(id => {
+  const el = $(id);
+  if (el) el.textContent = 'Atualização: ' + DADOS.atualizacao;
+});
+
+// ─── KPIs ─────────────────────────────────────────────────────────
+const kpiGrid = $('kpi-grid');
+DADOS.kpis.forEach(k => {
+  const colorMap = { red:'red', amber:'amber', blue:'blue', green:'green' };
+  const valColor = k.cor === 'red' ? 'red' : k.cor === 'amber' ? 'amber' : k.cor === 'blue' ? 'blue' : 'green';
+  kpiGrid.innerHTML += `
+    <div class="kpi ${k.cor}">
+      <div class="kpi-label">${k.label}</div>
+      <div class="kpi-val ${valColor}">${k.valor}</div>
+      <div class="kpi-sub">${k.sub}</div>
+    </div>`;
+});
+
+// ─── INVESTIMENTO bullets ─────────────────────────────────────────
+const d = DADOS.investimento;
+$('inv-bullets').innerHTML = `
+  <ul class="data-list">
+    <li>Taxa invest./RCL: <strong>4,7%</strong> — <strong>${d.nota}º lugar</strong> no Brasil (2025)</li>
+    <li>Para atingir a média nacional (8,4%): <strong style="color:var(--amber)">${d.varMediaNacional}</strong></li>
+    <li>Para atingir o nível do PI (líder, 17,0%): <strong style="color:var(--red)">${d.varLiderPI}</strong></li>
+    <li>${d.mediaPerCapita}</li>
+    <li>Em valores absolutos: ${d.evolucaoAbsoluta}</li>
+  </ul>`;
+
+// ─── Ranking table ─────────────────────────────────────────────────
+const rt = $('inv-ranking');
+rt.innerHTML = '<tr><th>Estado</th><th style="text-align:right">% RCL</th><th>Barra</th></tr>';
+const maxPct = 17.0;
+d.ranking.forEach(r => {
+  const hlClass = r.cor === 'red' ? 'hl-red' : r.cor === 'amber' ? 'hl-amber' : '';
+  const barColor = r.cor === 'red' ? 'var(--red)' : r.cor === 'amber' ? 'var(--amber)' : 'var(--g400)';
+  const fw = r.cor ? '700' : '400';
+  rt.innerHTML += `<tr class="${hlClass}">
+    <td style="font-weight:${fw}">${r.estado}</td>
+    <td style="text-align:right;font-weight:${fw}">${r.pct.toFixed(1)}%</td>
+    <td style="width:120px">
+      <div style="background:#eee;border-radius:3px;height:10px;">
+        <div style="background:${barColor};border-radius:3px;height:10px;width:${(r.pct/maxPct*100).toFixed(1)}%"></div>
+      </div>
+    </td>
+  </tr>`;
+});
+
+// ─── Chart: investimento absoluto ─────────────────────────────────
+new Chart($('chartInvAbs'), {
+  type: 'bar',
+  data: {
+    labels: d.caixaInvest.map(x => x.ano),
+    datasets: [{
+      label: 'Investimento (R$ bi)',
+      data:  d.caixaInvest.map(x => x.val),
+      backgroundColor: '#97C459',
+      borderColor: '#3B6D11',
+      borderWidth: 1,
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { beginAtZero: true, ticks: { callback: v => 'R$'+v+'bi', font: {size:11} }, grid: { color: '#eef3e8' } },
+      x: { ticks: { font: {size:11} } }
+    }
+  }
+});
+
+// ─── CAPAG table ──────────────────────────────────────────────────
+const ct = $('capag-table');
+ct.innerHTML = '<tr><th>Indicador</th><th>Nota</th><th>Valor</th><th>Situação</th></tr>';
+DADOS.capag.indicadores.forEach(r => {
+  ct.innerHTML += `<tr>
+    <td>${r.nome}</td>
+    <td>${badge(r.nota, r.badge)}</td>
+    <td style="text-align:center">${r.valor}</td>
+    <td style="font-size:12px;color:var(--muted)">${r.obs}</td>
+  </tr>`;
+});
+
+// CAPAG historico
+const ch = $('capag-hist');
+DADOS.capag.historico.forEach(h => {
+  ch.innerHTML += `<div style="text-align:center">
+    <div style="font-size:11px;color:var(--lgray);margin-bottom:3px">${h.ano}</div>
+    ${badge(h.nota, h.badge)}
+  </div>`;
+});
+
+// ─── Chart: caixa ─────────────────────────────────────────────────
+const caixaColors = DADOS.capag.caixa.map(x =>
+  x.hl === 'red' ? '#c0392b' : x.hl === 'amber' ? '#c47a10' : '#639922'
+);
+new Chart($('chartCaixa'), {
+  type: 'bar',
+  data: {
+    labels: DADOS.capag.caixa.map(x => x.ano),
+    datasets: [{
+      label: 'Caixa líquido (R$ mi)',
+      data:  DADOS.capag.caixa.map(x => x.val),
+      backgroundColor: caixaColors,
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { ticks: { callback: v => 'R$'+v.toLocaleString('pt-BR'), font:{size:11} }, grid:{color:'#eef3e8'} },
+      x: { ticks: { font:{size:11} } }
+    }
+  }
+});
+$('caixa-obs').innerHTML = `Recursos não vinculados em caixa: <strong style="color:var(--red)">${DADOS.capag.caixaNaoVinculado}</strong>`;
+
+// ─── GAUGE ────────────────────────────────────────────────────────
+const p = DADOS.pessoal;
+const range = p.escala_max - p.escala_min;
+function pPos(v) { return ((v - p.escala_min) / range * 100).toFixed(2) + '%'; }
+const seg1 = ((p.alerta    - p.escala_min) / range * 100).toFixed(2);
+const seg2 = ((p.prudencial - p.alerta)    / range * 100).toFixed(2);
+const seg3 = ((p.maximo    - p.prudencial) / range * 100).toFixed(2);
+const seg4 = ((p.escala_max - p.maximo)   / range * 100).toFixed(2);
+
+$('gauge-wrap').innerHTML = `
+  <div class="gauge-pointer-row">
+    <span class="gauge-pointer" style="left:${pPos(p.atual_pct)}">${p.atual_pct}%</span>
+  </div>
+  <div class="gauge-track">
+    <div class="gauge-seg" style="width:${seg1}%;background:#C0DD97"></div>
+    <div class="gauge-seg" style="width:${seg2}%;background:#fde98e"></div>
+    <div class="gauge-seg" style="width:${seg3}%;background:#fac86b"></div>
+    <div class="gauge-seg" style="width:${seg4}%;background:#f7a0a0"></div>
+  </div>
+  <div class="gauge-labels">
+    <span>${p.escala_min}%</span>
+    <span>Alerta ${p.alerta}%</span>
+    <span>Prudencial ${p.prudencial}%</span>
+    <span>Máx ${p.maximo}%</span>
+    <span>${p.escala_max}%</span>
+  </div>`;
+
+// Pessoal table
+const pt = $('pessoal-table');
+pt.innerHTML = '<tr><th>Limite</th><th>% RCL</th><th>Espaço</th></tr>';
+const limites = [
+  { lim:'Atual (3T2025)', pct: p.atual_pct+'%', esp: p.espaco_alerta_bi+' até alerta', hl:'hl-green', bold:true },
+  { lim:'Alerta',         pct: p.alerta+'%',     esp: '—', hl:'hl-amber', bold:false },
+  { lim:'Prudencial',     pct: p.prudencial+'%', esp: '—', hl:'', bold:false },
+  { lim:'Máximo',         pct: p.maximo+'%',     esp: '—', hl:'hl-red', bold:false },
+];
+limites.forEach(l => {
+  pt.innerHTML += `<tr class="${l.hl}"><td style="font-weight:${l.bold?700:400}">${l.lim}</td><td style="font-weight:${l.bold?700:400}">${l.pct}</td><td style="font-size:12px;color:var(--muted)">${l.esp}</td></tr>`;
+});
+
+// ─── CLP ranking ─────────────────────────────────────────────────
+const clp = DADOS.rankingCLP;
+$('clp-ref').textContent = clp.referencia;
+$('clp-pos').textContent = clp.posicao + 'º lugar (' + (clp.variacao < 0 ? clp.variacao : '+'+clp.variacao) + ')';
+const clpt = $('clp-table');
+clpt.innerHTML = '<tr><th>Indicador</th><th>Posição</th></tr>';
+clp.itens.forEach(r => {
+  clpt.innerHTML += `<tr><td>${r.ind}</td><td style="text-align:center">${badge(r.pos, r.badge)}</td></tr>`;
+});
+
+// ─── PPP list ─────────────────────────────────────────────────────
+const pppList = $('ppp-list');
+DADOS.ppps.lista.forEach(p2 => {
+  const isSusp = p2.status === 'Suspenso';
+  const isEmC  = p2.status === 'Em contratação';
+  const dotColor = isSusp ? 'var(--amber)' : isEmC ? 'var(--blue)' : 'var(--g500)';
+  pppList.innerHTML += `<li class="${isSusp?'suspended':''}" style="${isEmC?'--dot:var(--blue)':''}">`
+    + `<span style="position:absolute;left:4px;top:13px;width:7px;height:7px;border-radius:50%;background:${dotColor};"></span>`
+    + `${p2.nome} <span style="font-size:11px;color:var(--lgray)">(${p2.status})</span></li>`;
+});
+
+// PPP KPIs
+$('ppp-kpis').innerHTML = `
+  <div class="kpi" style="border-top-color:var(--g600)">
+    <div class="kpi-label">Comprometimento atual</div>
+    <div class="kpi-val green">${DADOS.ppps.comprometimentoAtual_pct}%</div>
+    <div class="kpi-sub">${DADOS.ppps.comprometimentoAtual_val} (2025)</div>
+  </div>
+  <div class="kpi red">
+    <div class="kpi-label">Pico projetado</div>
+    <div class="kpi-val red">${DADOS.ppps.pico_pct}%</div>
+    <div class="kpi-sub">da RCL em ${DADOS.ppps.pico_ano}</div>
+  </div>`;
+
+// Chart PPP
+const pppColors = DADOS.ppps.projecao.map(x =>
+  x.pct > 2.5 ? '#c0392b' : x.pct > 0.5 ? '#c47a10' : '#639922'
+);
+new Chart($('chartPPP'), {
+  type: 'bar',
+  data: {
+    labels: DADOS.ppps.projecao.map(x => x.ano),
+    datasets: [{
+      label: '% da RCL',
+      data: DADOS.ppps.projecao.map(x => x.pct),
+      backgroundColor: pppColors,
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: ctx => ctx.parsed.y.toFixed(2)+'% da RCL' } }
+    },
+    scales: {
+      y: { ticks: { callback: v => v.toFixed(1)+'%', font:{size:11} }, grid:{color:'#eef3e8'} },
+      x: { ticks: { font:{size:11} } }
+    }
+  }
+});
+
+// ─── AGENDA ──────────────────────────────────────────────────────
+const ag = $('agenda-grid');
+DADOS.agenda.forEach(e => {
+  const itens = e.itens.map(i => `<li>${i}</li>`).join('');
+  ag.innerHTML += `<div class="agenda-box ${e.classe}"><h3>${e.titulo}</h3><ul>${itens}</ul></div>`;
+});
+
+// ─── NAV scroll highlight ─────────────────────────────────────────
+const sections = document.querySelectorAll('.section');
+const navLinks  = document.querySelectorAll('nav a');
+const observer  = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#'+e.target.id));
+    }
+  });
+}, { rootMargin: '-30% 0px -60% 0px' });
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
