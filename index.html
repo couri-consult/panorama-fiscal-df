@@ -36,7 +36,8 @@ main{max-width:1100px;margin:0 auto;padding:32px 24px 60px;}
 @media(max-width:700px){.two-col,.three-col{grid-template-columns:1fr;}}
 .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px 16px;}
 .card+.card{margin-top:16px;}
-.card-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--g700);margin-bottom:14px;}
+.card-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--g700);margin-bottom:14px;line-height:1.5;}
+.two-col>.card>.card-title:first-child,.two-col>div>.card>.card-title:first-child{min-height:36px;display:flex;align-items:flex-start;}
 table{width:100%;border-collapse:collapse;font-size:13.5px;}
 th{background:var(--g100);color:var(--g800);font-weight:600;font-size:12px;padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);}
 td{padding:7px 10px;border-bottom:1px solid #eef3e8;}
@@ -71,6 +72,9 @@ ul.dl li.azul::before{background:var(--blue);}ul.dl li.amarelo::before{backgroun
 .btn-legal{background:none;border:1.5px solid var(--amber);color:var(--amber);border-radius:6px;padding:6px 14px;font-size:12.5px;font-weight:600;cursor:pointer;margin-bottom:14px;}
 .btn-legal:hover{background:#fef3dc;}
 footer{text-align:center;font-size:11.5px;color:var(--lgray);padding:24px;border-top:1px solid var(--border);}
+.fonte{font-size:11px;color:var(--lgray);margin-top:12px;padding-top:8px;border-top:1px dashed var(--border);word-break:break-all;}
+.fonte a{color:var(--g700);text-decoration:none;}
+.fonte a:hover{text-decoration:underline;}
 </style>
 </head>
 <body>
@@ -99,45 +103,42 @@ footer{text-align:center;font-size:11.5px;color:var(--lgray);padding:24px;border
 
   <section class="section" id="investimento">
     <div class="section-title">Investimento Público</div>
-    <div class="two-col">
-      <div class="card">
-        <div class="card-title">Diagnóstico</div>
-        <ul class="dl">
-          <li>Taxa invest./RCL: <strong>4,7%</strong> — <strong id="inv-pos"></strong> no Brasil (2025)</li>
-          <li>Para atingir a média nacional (8,4%): <strong style="color:var(--amber)">+R$ 1,5 bi/ano</strong></li>
-          <li>Para atingir o nível do PI (líder, 17,0%): <strong style="color:var(--red)">+R$ 4,8 bi/ano</strong></li>
-          <li>Em termos per capita: 12º no país</li>
-          <li>Em valores absolutos: R$ 0,7 bi (2021) → R$ 1,8 bi (2025)</li>
-        </ul>
-      </div>
-      <div class="card">
-        <div class="card-title">Ranking Invest./RCL por estado — 2025</div>
-        <table id="inv-table"></table>
-      </div>
+    <div class="card">
+      <div class="card-title">Diagnóstico</div>
+      <ul class="dl">
+        <li>Taxa invest./RCL: <strong>4,7%</strong> — <strong id="inv-pos"></strong> no Brasil (2025)</li>
+        <li>Para atingir a média nacional (8,4%): <strong style="color:var(--amber)">+R$ 1,5 bi/ano</strong></li>
+        <li>Para atingir o nível do PI (líder, 17,0%): <strong style="color:var(--red)">+R$ 4,8 bi/ano</strong></li>
+        <li>Em termos per capita: 12º no país</li>
+        <li>Em valores absolutos: R$ 0,7 bi (2021) → R$ 1,8 bi (2025)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">Ranking Invest./RCL por estado — 2025</div>
+      <div id="inv-chart-wrap" style="position:relative;"><canvas id="chartInv" role="img" aria-label="Ranking de investimento/RCL por estado"></canvas></div>
+      <div class="fonte">Fonte: Siconfi/Tesouro</div>
     </div>
   </section>
 
   <section class="section" id="capag">
     <div class="section-title">CAPAG e Disponibilidade de Caixa</div>
-    <div class="two-col">
-      <div>
-        <div class="card">
-          <div class="card-title">CAPAG — Nota Consolidada: <span style="color:var(--red);font-size:18px;font-weight:700;" id="capag-nota"></span></div>
-          <table id="capag-table"></table>
-          <div style="margin-top:18px;">
-            <div class="card-title" style="margin-bottom:10px;">Histórico consolidado</div>
-            <table id="capag-hist"></table>
-          </div>
-        </div>
+    <div class="card">
+      <div class="card-title">CAPAG — Nota Consolidada: <span style="color:var(--red);font-size:18px;font-weight:700;" id="capag-nota"></span></div>
+      <table id="capag-table"></table>
+      <div style="margin-top:18px;">
+        <div class="card-title" style="margin-bottom:10px;">Histórico consolidado</div>
+        <table id="capag-hist"></table>
       </div>
-      <div class="card">
-        <div class="card-title">Disponibilidade de caixa (R$ bi)</div>
-        <div style="position:relative;height:200px;"><canvas id="chartCaixa" role="img" aria-label="Evolução da disponibilidade de caixa do DF"></canvas></div>
-        <div style="display:flex;gap:16px;margin-top:8px;font-size:11.5px;color:var(--lgray);">
-          <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#639922;margin-right:4px;"></span>Caixa líquido</span>
-          <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#c0392b;margin-right:4px;"></span>Rec. não vinculados</span>
-        </div>
+      <div class="fonte">Fonte: <a href="https://www.tesourotransparente.gov.br/temas/estados-e-municipios/capacidade-de-pagamento-capag" target="_blank" rel="noopener">tesourotransparente.gov.br/temas/estados-e-municipios/capacidade-de-pagamento-capag</a></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Disponibilidade de caixa (R$ bi)</div>
+      <div style="position:relative;height:200px;"><canvas id="chartCaixa" role="img" aria-label="Evolução da disponibilidade de caixa do DF"></canvas></div>
+      <div style="display:flex;gap:16px;margin-top:8px;font-size:11.5px;color:var(--lgray);">
+        <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#639922;margin-right:4px;"></span>Caixa líquido</span>
+        <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#c0392b;margin-right:4px;"></span>Rec. não vinculados</span>
       </div>
+      <div class="fonte">Fonte: Siconfi/Tesouro</div>
     </div>
   </section>
 
@@ -147,10 +148,12 @@ footer{text-align:center;font-size:11.5px;color:var(--lgray);padding:24px;border
       <div class="card">
         <div class="card-title">Poder Executivo — % da RCL (3T2025)</div>
         <table id="pessoal-table"></table>
+        <div class="fonte">Fonte: Siconfi/Tesouro</div>
       </div>
       <div class="card">
         <div class="card-title">Ranking CLP — Solidez Fiscal (2024): <span id="clp-pos" style="color:var(--red);font-weight:700;"></span></div>
         <table id="clp-table"></table>
+        <div class="fonte">Fonte: <a href="https://rankingdecompetitividade.org.br/estados/" target="_blank" rel="noopener">rankingdecompetitividade.org.br/estados/</a></div>
       </div>
     </div>
   </section>
@@ -166,6 +169,7 @@ footer{text-align:center;font-size:11.5px;color:var(--lgray);padding:24px;border
           <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--blue);margin-right:4px;"></span>A contratar</span>
           <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--amber);margin-right:4px;"></span>Suspenso</span>
         </div>
+        <div class="fonte">Fonte: RREO de dezembro de 2025</div>
       </div>
       <div class="card">
         <div class="card-title">Comprometimento da RCL com PPPs</div>
@@ -173,6 +177,7 @@ footer{text-align:center;font-size:11.5px;color:var(--lgray);padding:24px;border
         <button class="btn-legal" onclick="document.getElementById('modal-ppp').classList.add('open')">⚠ Limites legais de PPP</button>
         <div style="position:relative;height:190px;"><canvas id="chartPPP" role="img" aria-label="Projeção comprometimento RCL com PPPs"></canvas></div>
         <div style="font-size:11px;color:var(--lgray);margin-top:6px;text-align:center;">Linha tracejada = limite legal de 5% da RCL</div>
+        <div class="fonte">Fonte: RREO de dezembro de 2025</div>
       </div>
     </div>
   </section>
@@ -231,18 +236,43 @@ function readSheet(wb, name) {
 // ── RENDER FUNCTIONS ─────────────────────────────────────────────
 function renderKpis(rows) {
   var labelMap = {
-    orcamento_df:'Orçamento do DF 2026', fcdf:'FCDF 2026',
     investimento_rcl:'Investimento / RCL', capag:'Nota CAPAG',
     caixa:'Caixa Líquido', beneficios:'Benefícios Tributários'
   };
   var g = document.getElementById('kpi-grid');
+  // extrai número (em bilhões) de uma string tipo "R$ 62,4 bi"
+  function parseBi(s){ var m = String(s).replace(',','.').match(/-?\d+(\.\d+)?/); return m ? parseFloat(m[0]) : NaN; }
+  function fmtBi(v){ return 'R$ '+v.toFixed(1).replace('.',',')+' bi'; }
+
+  var orc = rows.find(function(r){return clean(r.chave)==='orcamento_df';});
+  var fcdf = rows.find(function(r){return clean(r.chave)==='fcdf';});
+  if (orc && fcdf) {
+    var vOrc = parseBi(orc.valor_bilhoes);
+    var vFcdf = parseBi(fcdf.valor_bilhoes);
+    var cor = clean(orc.cor) || 'green';
+    g.innerHTML += '<div class="kpi '+cor+'" style="grid-column:span 2;">'
+      +'<div class="kpi-label">Orçamento do DF + FCDF 2026</div>'
+      +'<div class="kpi-val cv-'+cor+'">'+fmtBi(vOrc+vFcdf)+'</div>'
+      +'<div class="kpi-sub" style="display:flex;gap:14px;flex-wrap:wrap;margin-top:4px;">'
+        +'<span><strong style="color:var(--text)">'+fmtBi(vOrc)+'</strong> Orçamento DF</span>'
+        +'<span><strong style="color:var(--text)">'+fmtBi(vFcdf)+'</strong> FCDF</span>'
+      +'</div></div>';
+  }
+
   rows.forEach(function(r) {
     var chave = clean(r.chave);
+    if (chave==='orcamento_df' || chave==='fcdf') return;
     var valor = clean(r.valor_bilhoes);
     var sub   = clean(r.sub);
     var cor   = clean(r.cor);
     var label = labelMap[chave] || chave;
-    g.innerHTML += '<div class="kpi '+cor+'"><div class="kpi-label">'+label+'</div><div class="kpi-val cv-'+cor+'">'+valor+'</div><div class="kpi-sub">'+sub+'</div></div>';
+    var tips = {
+      capag: 'A análise da capacidade de pagamento apura a situação fiscal dos Entes Subnacionais que querem contrair novos empréstimos com garantia da União. O intuito da Capag é apresentar de forma simples e transparente se um novo endividamento representa risco de crédito para o Tesouro Nacional.'
+    };
+    var labelHtml = tips[chave]
+      ? '<span class="has-tip">'+label+'<span class="tip">'+tips[chave]+'</span></span>'
+      : label;
+    g.innerHTML += '<div class="kpi '+cor+'"><div class="kpi-label">'+labelHtml+'</div><div class="kpi-val cv-'+cor+'">'+valor+'</div><div class="kpi-sub">'+sub+'</div></div>';
   });
 }
 
@@ -251,25 +281,34 @@ function renderInvestimento(rows) {
   var dfRow = rows.find(function(r){return clean(r.estado)==='DF';});
   if(dfRow) document.getElementById('inv-pos').textContent = num(dfRow.ranking)+'º lugar';
 
-  var t = document.getElementById('inv-table');
-  t.innerHTML = '<tr><th>Estado</th><th style="text-align:right">% RCL</th><th></th></tr>';
-  rows.forEach(function(r) {
-    var estado  = clean(r.estado);
-    var pct     = num(r.pct);
+  var labels = rows.map(function(r){
+    var estado = clean(r.estado);
     var ranking = num(r.ranking);
-    var dest    = clean(r.destaque);
-    var isMedia = estado === 'Média BR';
-    var hl      = dest==='red'?'hl-red':dest==='green'?'hl-green':'';
-    var fw      = dest?'700':'400';
-    var bc      = dest==='red'?'var(--red)':dest==='green'?'var(--g500)':'var(--g300)';
-    // rótulo: acrescenta posição para DF, e "Média BR" para a média
-    var label = estado;
-    if(dest==='red' && !isMedia) label += ' <span style="font-size:11px;font-weight:400;color:var(--red)">'+ranking+'º</span>';
-    t.innerHTML += '<tr class="'+hl+'" style="font-size:12.5px;">'
-      +'<td style="font-weight:'+fw+';padding:4px 8px">'+label+'</td>'
-      +'<td style="text-align:right;font-weight:'+fw+';padding:4px 8px">'+pct.toFixed(1)+'%</td>'
-      +'<td style="width:80px;padding:4px 8px"><div style="background:#eee;border-radius:3px;height:8px;">'
-      +'<div style="background:'+bc+';border-radius:3px;height:8px;width:'+(pct/17*100).toFixed(1)+'%"></div></div></td></tr>';
+    if (clean(r.destaque)==='red' && estado!=='Média BR') return estado+' ('+ranking+'º)';
+    return estado;
+  });
+  var data = rows.map(function(r){ return +num(r.pct).toFixed(2); });
+  var colors = rows.map(function(r){
+    var d = clean(r.destaque);
+    return d==='red' ? '#c0392b' : d==='green' ? '#4a8a14' : '#97C459';
+  });
+
+  document.getElementById('inv-chart-wrap').style.height = '320px';
+
+  new Chart(document.getElementById('chartInv'),{
+    type:'bar',
+    data:{labels:labels,datasets:[{data:data,backgroundColor:colors,borderRadius:3}]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:function(c){return c.parsed.y.toFixed(1)+'% da RCL';}}}
+      },
+      scales:{
+        x:{ticks:{font:{size:11},autoSkip:false,maxRotation:90,minRotation:60},grid:{display:false}},
+        y:{ticks:{callback:function(v){return v+'%';},font:{size:11}},grid:{color:'#eef3e8'}}
+      }
+    }
   });
 }
 
