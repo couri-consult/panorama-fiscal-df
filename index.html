@@ -251,7 +251,7 @@ function renderKpis(rows) {
     var vFcdf = parseBi(fcdf.valor_bilhoes);
     var cor = clean(orc.cor) || 'green';
     g.innerHTML += '<div class="kpi '+cor+'" style="grid-column:span 2;">'
-      +'<div class="kpi-label">Orçamento do DF + FCDF 2026</div>'
+      +'<div class="kpi-label">Orçamento do DF em 2026</div>'
       +'<div class="kpi-val cv-'+cor+'">'+fmtBi(vOrc+vFcdf)+'</div>'
       +'<div class="kpi-sub" style="display:flex;gap:14px;flex-wrap:wrap;margin-top:4px;">'
         +'<span><strong style="color:var(--text)">'+fmtBi(vOrc)+'</strong> Orçamento DF</span>'
