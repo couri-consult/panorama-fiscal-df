@@ -108,13 +108,13 @@ footer{text-align:center;font-size:11.5px;color:var(--lgray);padding:24px;border
       <ul class="dl">
         <li>Taxa invest./RCL: <strong>4,7%</strong> — <strong id="inv-pos"></strong> no Brasil (2025)</li>
         <li>Para atingir a média nacional (8,4%): <strong style="color:var(--amber)">+R$ 1,5 bi/ano</strong></li>
-        <li>Para atingir o nível do PI (líder, 17,0%): <strong style="color:var(--red)">+R$ 4,8 bi/ano</strong></li>
+        <li>Para atingir o nível do Piauí (líder, 17,0%): <strong style="color:var(--red)">+R$ 4,8 bi/ano</strong></li>
         <li>Em termos per capita: 12º no país</li>
         <li>Em valores absolutos: R$ 0,7 bi (2021) → R$ 1,8 bi (2025)</li>
       </ul>
     </div>
     <div class="card">
-      <div class="card-title">Ranking Invest./RCL por estado — 2025</div>
+      <div class="card-title">Ranking Investimento/RCL por estado — 2025</div>
       <div id="inv-chart-wrap" style="position:relative;"><canvas id="chartInv" role="img" aria-label="Ranking de investimento/RCL por estado"></canvas></div>
       <div class="fonte">Fonte: Siconfi/Tesouro</div>
     </div>
@@ -269,9 +269,10 @@ function renderKpis(rows) {
     var tips = {
       capag: 'A análise da capacidade de pagamento apura a situação fiscal dos Entes Subnacionais que querem contrair novos empréstimos com garantia da União. O intuito da Capag é apresentar de forma simples e transparente se um novo endividamento representa risco de crédito para o Tesouro Nacional.'
     };
+    var rcl_tip = '<span class="has-tip">RCL<span class="tip">Receita Corrente Líquida</span></span>';
     var labelHtml = tips[chave]
       ? '<span class="has-tip">'+label+'<span class="tip">'+tips[chave]+'</span></span>'
-      : label;
+      : label.replace(/\bRCL\b/g, rcl_tip);
     g.innerHTML += '<div class="kpi '+cor+'"><div class="kpi-label">'+labelHtml+'</div><div class="kpi-val cv-'+cor+'">'+valor+'</div><div class="kpi-sub">'+sub+'</div></div>';
   });
 }
