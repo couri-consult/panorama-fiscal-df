@@ -1,11 +1,22 @@
 {
   "_meta": {
-    "updated_at": "2026-05-10T11:55:31",
+    "updated_at": "2026-05-10T12:32:41",
     "rreo_period": "2025/6",
     "rgf_period": "2025/3",
     "populacao_df_year": 2024,
     "populacao_df": 2982818,
     "capag_nota_consolidada": "C",
+    "raw_siconfi": {
+      "rreo_balanco": {
+        "orcamento_dotacao_atualizada": 45097440816.84,
+        "investimento_liquidado": 1833483393.14,
+        "receita_impostos_realizada": 23406467689.42
+      },
+      "rgf_dtp": {},
+      "rgf_caixa": {
+        "caixa_liquido_total_nao_vinculado": null
+      }
+    },
     "sources": {
       "kpis": "manual",
       "investimentos": "manual",
@@ -15,13 +26,15 @@
       "ppps": "manual",
       "ppps_projecao": "manual",
       "pessoal": "manual",
-      "clp_ranking": "manual"
+      "clp_ranking": "manual",
+      "kpi.orcamento_df": "siconfi-rreo-anexo01",
+      "kpi.capag": "csv-local"
     }
   },
   "kpis": [
     {
       "chave": "orcamento_df",
-      "valor_bilhoes": "R$ 45,9 bi",
+      "valor_bilhoes": "R$ 45,1 bi",
       "sub": null,
       "cor": "blue"
     },
