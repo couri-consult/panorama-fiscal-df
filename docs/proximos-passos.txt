@@ -1,0 +1,118 @@
+PANORAMA FISCAL DO DF — PRÓXIMOS PASSOS
+Última atualização: 10/05/2026
+
+═══════════════════════════════════════════════════════════════════
+PRIORIDADE ALTA — desbloquear dados que já têm extrator pronto
+═══════════════════════════════════════════════════════════════════
+
+[1] Re-rodar build em horário de baixa demanda do SICONFI
+    Hoje o RGF Anexo 01 caiu em HTTP 429 após 6 retries (124s totais
+    de espera). Tentar de novo numa hora menos castigada (madrugada
+    ou cedo da manhã) deve capturar:
+      - RCL (linha "RECEITA CORRENTE LÍQUIDA - RCL (IV)")
+      - DTP "DESPESA TOTAL COM PESSOAL" (% sobre RCL Ajustada)
+      - DTP em valor (TOTAL ÚLTIMOS 12 MESES)
+    Quando rodar e funcionar, automaticamente:
+      - Recalcula investimento/RCL = invest_liq / RCL × 100
+      - Atualiza pessoal.atual_pct (vinha 41,5% manual)
+      - Atualiza pessoal.rcl_bi (vinha 39,2 manual)
+
+[2] Calibrar extrator do RGF Anexo 05 (caixa)
+    A API retornou 184 linhas mas o find_value() não encontrou o
+    "TOTAL DOS RECURSOS NÃO VINCULADOS (I)" para o cod_conta
+    "DisponibilidadeDeCaixaLiquida" + a coluna gigante:
+    "DISPONIBILIDADE DE CAIXA LÍQUIDA (APÓS A INSCRIÇÃO EM RESTOS A
+    PAGAR NÃO PROCESSADOS DO EXERCÍCIO) (i) = (g - h)"
+    Investigar:
+      - Verificar se há linha de TOTAL geral (vinculados + não vinculados)
+        em vez de só "TOTAL DOS RECURSOS NÃO VINCULADOS"
+      - Pode estar em outro cod_conta como "TotalDisponibilidade"
+      - Confirmar tipografia exata da `coluna` (cuidado com espaço em "(i) = (g - h)")
+
+[3] Decidir período correto do orçamento
+    O usuário disse "Orçamento do DF em 2026". O build atual pega
+    RREO 2025/6º bim, que mostra "DOTAÇÃO ATUALIZADA" referente a
+    2025 (R$ 45,1 bi).
+    Pra mostrar 2026, mudar:
+      DEFAULT_RREO_YEAR = 2026
+      DEFAULT_RREO_BIM = 1   (já publicado em maio/2026)
+    Ou: rodar 2 chamadas RREO (uma para 2026/1 — orçamento; outra
+    para 2025/6 — fechamento de investimento e receita de impostos).
+    Recomendação: 2 chamadas, separadas por motivo conceitual.
+
+═══════════════════════════════════════════════════════════════════
+PRIORIDADE MÉDIA — automatizar mais fontes
+═══════════════════════════════════════════════════════════════════
+
+[4] Token Portal da Transparência para automatizar FCDF
+    1. Registrar em https://api.portaldatransparencia.gov.br
+    2. Salvar token em .env (já está no .gitignore)
+    3. Configurar TRANSPARENCIA_TOKEN como variável de ambiente
+    4. Implementar fetch_fcdf_execution() em scripts/loaders/transparencia.py
+       Endpoint provável: /api-de-dados/despesas/por-orgao
+       com codigoOrgao=25915
+    5. Quando funcionar, FCDF deixa de ser manual
+
+[5] Calcular % benefícios/impostos automaticamente
+    Hoje o sub do KPI "beneficios" é "48% da receita de impostos"
+    hardcoded. Como já temos:
+      - beneficios_bi (manual = R$ 11,3 bi)
+      - receita_impostos_realizada (SICONFI = R$ 23,4 bi)
+    Adicionar em build_data.py:
+      pct = beneficios_bi * 1e9 / receita_impostos_realizada * 100
+      update_kpi(kpis, "beneficios", sub=f"{pct:.0f}% da receita de impostos")
+
+[6] Investimento per capita real
+    Já temos população (IBGE: 2.982.818) e investimento liquidado
+    (SICONFI: R$ 1,8 bi). Hoje o card só mostra "12º no país" hardcoded.
+    Adicionar campo derivado em data.json._meta.investimento_per_capita
+    e mostrar valor R$/hab no card.
+
+═══════════════════════════════════════════════════════════════════
+PRIORIDADE BAIXA — melhorias de processo
+═══════════════════════════════════════════════════════════════════
+
+[7] GitHub Actions com workflow_dispatch
+    .github/workflows/build-data.yml com botão "Run workflow" no GitHub.
+    Vantagem: rodar atualização sem mexer no terminal local.
+    Cuidado: o build precisa do panorama_manual.xlsx versionado, então
+    qualquer edição manual precisa de commit antes do dispatch.
+
+[8] Ranking investimento/RCL por estado real (27 chamadas SICONFI)
+    A aba "investimentos" do dashboard hoje é manual e mostra ranking
+    dos 27 estados + DF. Para automatizar precisamos:
+      - Loop por todos os UFs (cod_ibge 11..53)
+      - Para cada um: RREO Anexo 01 (investimento) + RGF Anexo 01 (RCL)
+      - Calcular pct e ranquear
+    São ~54 chamadas SICONFI por update — viável se tolerar throttling
+    (rodar em background à noite e aceitar que pode levar minutos).
+
+[9] Limpar panorama_fiscal_df.xlsx duplicado na raiz
+    O index.html não usa mais o XLSX diretamente. O arquivo na raiz
+    é redundante com manual/panorama_manual.xlsx. Mas o CLAUDE.md
+    do projeto antigo o trata como "authoring copy" — confirmar com
+    usuário antes de remover. Eventualmente: deletar da raiz, manter
+    só manual/panorama_manual.xlsx como surface de edição.
+
+[10] Atualizar CLAUDE.md
+     O CLAUDE.md atual descreve a arquitetura antiga (XLSX → render).
+     Reescrever para refletir a nova: data.json + scripts + loaders.
+     Mencionar SICONFI id_ente=53 explicitamente, listar APIs que
+     funcionam, e o workflow build → commit → push.
+
+═══════════════════════════════════════════════════════════════════
+RECEITAS PARA PROBLEMAS CONHECIDOS
+═══════════════════════════════════════════════════════════════════
+
+SICONFI rate-limit (HTTP 429 do Oracle ORDS pool):
+  - Aumentar backoff em scripts/loaders/_http.py se for crônico
+  - Espalhar chamadas no tempo (THROTTLE_SLEEP em siconfi.py)
+  - Tentar em horários menos congestionados
+
+CRLF warnings no git add:
+  - Normais no Windows. Inofensivos. Git armazena LF, checkout para CRLF.
+  - Se incomodar: git config core.autocrlf input
+
+Pages não republica após push:
+  - Aguardar 30-90s e dar ctrl+shift+R no navegador
+  - Verificar Settings → Pages no GitHub se houve erro de build

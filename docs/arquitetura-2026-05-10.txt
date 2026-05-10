@@ -1,0 +1,125 @@
+PANORAMA FISCAL DO DF — AVANÇOS DE ARQUITETURA
+Sessão de 10/05/2026
+
+═══════════════════════════════════════════════════════════════════
+1. MUDANÇA CENTRAL: XLSX → data.json
+═══════════════════════════════════════════════════════════════════
+
+Antes:
+  index.html → fetch panorama_fiscal_df.xlsx → SheetJS parse → render
+  Um único arquivo Excel servia como banco de dados manual.
+
+Depois:
+  scripts/build_data.py → consulta APIs + lê manual.xlsx → gera data.json
+  index.html → fetch data.json → render
+
+O index.html ficou ~3KB menor (sem dependência da SheetJS via CDN).
+
+═══════════════════════════════════════════════════════════════════
+2. ESTRUTURA DE PASTAS NOVA
+═══════════════════════════════════════════════════════════════════
+
+panorama-fiscal-df/
+├── index.html               (modificado: agora consome data.json)
+├── data.json                (gerado pelo build, commitar e subir)
+├── styles/tokens.css        (já existia local, agora versionado)
+├── manual/
+│   └── panorama_manual.xlsx (cópia do xlsx antigo, fonte de fallback)
+├── capag/
+│   └── capagdosestados2018..2025.csv (já existiam)
+├── scripts/
+│   ├── build_data.py        (orquestrador)
+│   ├── transforms.py        (formatações + CAPAG history)
+│   └── loaders/
+│       ├── _http.py         (retry/backoff genérico)
+│       ├── siconfi.py       (RREO + RGF do DF estadual)
+│       ├── ibge.py          (população via SIDRA)
+│       ├── capag.py         (CSVs locais)
+│       ├── transparencia.py (stub para FCDF, precisa token)
+│       └── manual.py        (lê o XLSX)
+└── docs/
+    ├── arquitetura-2026-05-10.txt   (este arquivo)
+    └── proximos-passos.txt
+
+═══════════════════════════════════════════════════════════════════
+3. INTEGRAÇÃO COM GITHUB
+═══════════════════════════════════════════════════════════════════
+
+A pasta do Drive era apenas pasta sincronizada — sem git.
+Hoje foi feito:
+  - git init -b main na pasta do Drive
+  - .gitignore com .claude/, __pycache__/, *.token, .env
+  - remote origin = https://github.com/couri-consult/panorama-fiscal-df
+  - git fetch + reset --mixed origin/main para alinhar com o que já estava
+    publicado (index.html, data.json, panorama_fiscal_df.xlsx)
+  - commit b36f72d: "Migra arquitetura..." (27 arquivos, +2100 linhas)
+  - commit 692b97c: "SICONFI: corrige id_ente p/ DF estadual..."
+  - git push -u origin main (autenticação via Windows Credential Manager)
+
+A partir daqui o workflow é:
+  python scripts/build_data.py
+  git add data.json
+  git commit -m "atualiza dados"
+  git push
+
+═══════════════════════════════════════════════════════════════════
+4. APIS QUE FUNCIONAM HOJE
+═══════════════════════════════════════════════════════════════════
+
+IBGE (servicodados.ibge.gov.br/api/v3)
+  Status: ✅ Estável
+  Cobertura: estimativa de população do DF
+  Resultado em produção: 2.982.818 hab (2024)
+
+CAPAG (CSVs locais em capag/)
+  Status: ✅ Funciona — anual, atualização manual quando STN publica
+  Cobertura: histórico completo 2018–2025 + indicadores correntes
+  Loader trata 4 layouts diferentes do CSV ao longo dos anos
+
+SICONFI (apidatalake.tesouro.gov.br/ords/siconfi/tt)
+  Status: ⚠ Funciona MAS rate-limit pesado (Oracle ORDS pool)
+  Descoberta-chave da sessão:
+    - id_ente=5300108 = Brasília MUNICÍPIO (estávamos errados)
+    - id_ente=53 = DF como ente subnacional (correto)
+    - DF Executivo no Cod_instituicoes_siconfi.pdf: cod_siconfi "53EX"
+  RREO Anexo 01 retornou 638 linhas para o DF (2025/6º bim). Extraídos:
+    - DOTAÇÃO ATUALIZADA do total de despesas: R$ 45,1 bi
+    - INVESTIMENTOS LIQUIDADOS: R$ 1,8 bi
+    - RECEITA DE IMPOSTOS REALIZADA: R$ 23,4 bi
+
+═══════════════════════════════════════════════════════════════════
+5. APIS QUE AINDA NÃO FORAM TENTADAS
+═══════════════════════════════════════════════════════════════════
+
+Portal da Transparência (FCDF, órgão 25915)
+  Loader stub criado em scripts/loaders/transparencia.py.
+  Requer token TRANSPARENCIA_TOKEN (registro grátis).
+  Sem token, retorna None e o build cai no manual.
+
+Beneficiômetro DF (paineis.fazenda.df.gov.br/beneficiometro)
+  Aplicação Qlik Sense — sem API documentada.
+  Mantido como entrada manual.
+
+Ranking de Competitividade dos Estados (CLP)
+  Sem API. Tem download de planilha anual.
+  Mantido como entrada manual.
+
+═══════════════════════════════════════════════════════════════════
+6. ESTADO DE CADA SEÇÃO DO DASHBOARD HOJE
+═══════════════════════════════════════════════════════════════════
+
+KPI orcamento_df          siconfi-rreo-anexo01  ✅ vindo da API
+KPI fcdf                  manual                  (precisa Portal Transparência)
+KPI investimento_rcl      manual                  (RGF caiu no rate-limit hoje)
+KPI capag                 csv-local             ✅ vindo da CSV
+KPI caixa                 manual                  (RGF Anexo 05 precisa calibrar)
+KPI beneficios            manual                  (Qlik não tem API)
+
+investimentos (ranking)   manual                  (precisaria 27 SICONFI calls)
+caixa (histórico)         manual                  (RGF Anexo 05)
+capag                     csv-local             ✅
+capag_historico           csv-local             ✅
+pessoal                   manual                  (RGF DTP)
+clp_ranking               manual                  (sem API)
+ppps                      manual                  (textual, manual ok)
+ppps_projecao             manual                  (forecast, manual ok)
