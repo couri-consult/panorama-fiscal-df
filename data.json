@@ -1,0 +1,503 @@
+{
+  "_meta": {
+    "updated_at": "2026-05-10T11:55:31",
+    "rreo_period": "2025/6",
+    "rgf_period": "2025/3",
+    "populacao_df_year": 2024,
+    "populacao_df": 2982818,
+    "capag_nota_consolidada": "C",
+    "sources": {
+      "kpis": "manual",
+      "investimentos": "manual",
+      "caixa": "manual",
+      "capag": "csv-local",
+      "capag_historico": "csv-local",
+      "ppps": "manual",
+      "ppps_projecao": "manual",
+      "pessoal": "manual",
+      "clp_ranking": "manual"
+    }
+  },
+  "kpis": [
+    {
+      "chave": "orcamento_df",
+      "valor_bilhoes": "R$ 45,9 bi",
+      "sub": null,
+      "cor": "blue"
+    },
+    {
+      "chave": "fcdf",
+      "valor_bilhoes": "R$ 28,4 bi",
+      "sub": "38% da despesa total (2025)",
+      "cor": "blue"
+    },
+    {
+      "chave": "investimento_rcl",
+      "valor_bilhoes": "4,7%",
+      "sub": "20º lugar no Brasil",
+      "cor": "amber"
+    },
+    {
+      "chave": "capag",
+      "valor_bilhoes": "C",
+      "sub": "Pior indicador: poupança corrente",
+      "cor": "red"
+    },
+    {
+      "chave": "caixa",
+      "valor_bilhoes": "R$ 570 mi",
+      "sub": "Dado de dez/2025",
+      "cor": "red"
+    },
+    {
+      "chave": "beneficios",
+      "valor_bilhoes": "R$ 11,3 bi",
+      "sub": "48% da receita de impostos",
+      "cor": "amber"
+    }
+  ],
+  "investimentos": [
+    {
+      "estado": "RN",
+      "pct": 3.1,
+      "ranking": 27,
+      "destaque": null
+    },
+    {
+      "estado": "RR",
+      "pct": 3.4,
+      "ranking": 26,
+      "destaque": null
+    },
+    {
+      "estado": "RO",
+      "pct": 3.6,
+      "ranking": 25,
+      "destaque": null
+    },
+    {
+      "estado": "RS",
+      "pct": 3.6,
+      "ranking": 24,
+      "destaque": null
+    },
+    {
+      "estado": "AM",
+      "pct": 4.3,
+      "ranking": 23,
+      "destaque": null
+    },
+    {
+      "estado": "SP",
+      "pct": 4.4,
+      "ranking": 22,
+      "destaque": null
+    },
+    {
+      "estado": "TO",
+      "pct": 4.6,
+      "ranking": 21,
+      "destaque": null
+    },
+    {
+      "estado": "DF",
+      "pct": 4.7,
+      "ranking": 20,
+      "destaque": "red"
+    },
+    {
+      "estado": "RJ",
+      "pct": 5.4,
+      "ranking": 19,
+      "destaque": null
+    },
+    {
+      "estado": "AC",
+      "pct": 5.5,
+      "ranking": 18,
+      "destaque": null
+    },
+    {
+      "estado": "MG",
+      "pct": 5.9,
+      "ranking": 17,
+      "destaque": null
+    },
+    {
+      "estado": "SE",
+      "pct": 6.5,
+      "ranking": 16,
+      "destaque": null
+    },
+    {
+      "estado": "AP",
+      "pct": 7.5,
+      "ranking": 15,
+      "destaque": null
+    },
+    {
+      "estado": "PR",
+      "pct": 8.4,
+      "ranking": 14,
+      "destaque": null
+    },
+    {
+      "estado": "PE",
+      "pct": 9.2,
+      "ranking": 13,
+      "destaque": null
+    },
+    {
+      "estado": "AL",
+      "pct": 9.4,
+      "ranking": 12,
+      "destaque": null
+    },
+    {
+      "estado": "SC",
+      "pct": 9.9,
+      "ranking": 11,
+      "destaque": null
+    },
+    {
+      "estado": "CE",
+      "pct": 10.5,
+      "ranking": 10,
+      "destaque": null
+    },
+    {
+      "estado": "BA",
+      "pct": 10.7,
+      "ranking": 9,
+      "destaque": null
+    },
+    {
+      "estado": "MS",
+      "pct": 11.2,
+      "ranking": 8,
+      "destaque": null
+    },
+    {
+      "estado": "MT",
+      "pct": 12.1,
+      "ranking": 7,
+      "destaque": null
+    },
+    {
+      "estado": "PB",
+      "pct": 12.1,
+      "ranking": 6,
+      "destaque": null
+    },
+    {
+      "estado": "GO",
+      "pct": 12.6,
+      "ranking": 5,
+      "destaque": null
+    },
+    {
+      "estado": "PA",
+      "pct": 13.3,
+      "ranking": 4,
+      "destaque": null
+    },
+    {
+      "estado": "MA",
+      "pct": 14,
+      "ranking": 3,
+      "destaque": null
+    },
+    {
+      "estado": "ES",
+      "pct": 14.8,
+      "ranking": 2,
+      "destaque": null
+    },
+    {
+      "estado": "PI",
+      "pct": 17,
+      "ranking": 1,
+      "destaque": null
+    },
+    {
+      "estado": "Média BR",
+      "pct": 8.433333333333334,
+      "ranking": null,
+      "destaque": "green"
+    }
+  ],
+  "caixa": [
+    {
+      "ano": "2021",
+      "caixa_liquido": 1920209349,
+      "nao_vinculado": 916943191
+    },
+    {
+      "ano": "2022",
+      "caixa_liquido": 1581433753,
+      "nao_vinculado": -65395875
+    },
+    {
+      "ano": "2023",
+      "caixa_liquido": 2897237502,
+      "nao_vinculado": 414960383
+    },
+    {
+      "ano": "2024",
+      "caixa_liquido": 1868160949,
+      "nao_vinculado": -645377136
+    },
+    {
+      "ano": "2025",
+      "caixa_liquido": 569983267,
+      "nao_vinculado": -876632452
+    }
+  ],
+  "capag": [
+    {
+      "indicador": "Endividamento (% da RCL)",
+      "nota": "A",
+      "badge": "green",
+      "valor": "30,85%",
+      "obs": "",
+      "conceito": "Mede a dívida consolidada do estado em relação à receita corrente líquida. Quanto menor, melhor. Abaixo de 60% da RCL = nota A."
+    },
+    {
+      "indicador": "Poupança Corrente (Despesa/Receita)",
+      "nota": "C",
+      "badge": "red",
+      "valor": "95,27%",
+      "obs": "",
+      "conceito": "Mede quanto das receitas correntes é consumido pelas despesas correntes. Acima de 95% significa que o estado gasta quase tudo que arrecada só para se manter, sem sobrar para investir."
+    },
+    {
+      "indicador": "Liquidez Relativa (Dívida/RCL)",
+      "nota": "B",
+      "badge": "amber",
+      "valor": "1,01%",
+      "obs": "",
+      "conceito": "Mede se o estado tem recursos disponíveis em caixa para honrar suas obrigações de curto prazo. Entre 0% e 5% = nota B."
+    }
+  ],
+  "capag_historico": [
+    {
+      "ano": "2018",
+      "endividamento": "ND",
+      "poupanca": "ND",
+      "liquidez": "ND",
+      "consolidado": "C"
+    },
+    {
+      "ano": "2019",
+      "endividamento": "A",
+      "poupanca": "C",
+      "liquidez": "C",
+      "consolidado": "C"
+    },
+    {
+      "ano": "2020",
+      "endividamento": "A",
+      "poupanca": "C",
+      "liquidez": "C",
+      "consolidado": "C"
+    },
+    {
+      "ano": "2021",
+      "endividamento": "A",
+      "poupanca": "B",
+      "liquidez": "A",
+      "consolidado": "B"
+    },
+    {
+      "ano": "2022",
+      "endividamento": "A",
+      "poupanca": "B",
+      "liquidez": "A",
+      "consolidado": "B"
+    },
+    {
+      "ano": "2023",
+      "endividamento": "A",
+      "poupanca": "B",
+      "liquidez": "A",
+      "consolidado": "B"
+    },
+    {
+      "ano": "2024",
+      "endividamento": "A",
+      "poupanca": "C",
+      "liquidez": "B",
+      "consolidado": "C"
+    },
+    {
+      "ano": "2025",
+      "endividamento": "A",
+      "poupanca": "C",
+      "liquidez": "B",
+      "consolidado": "C"
+    }
+  ],
+  "pessoal": [
+    {
+      "chave": "atual_pct",
+      "valor": 41.5
+    },
+    {
+      "chave": "alerta_pct",
+      "valor": 44.1
+    },
+    {
+      "chave": "prudencial_pct",
+      "valor": 46.55
+    },
+    {
+      "chave": "maximo_pct",
+      "valor": 49
+    },
+    {
+      "chave": "rcl_bi",
+      "valor": 39.2
+    }
+  ],
+  "clp_ranking": [
+    {
+      "indicador": "Taxa de Investimentos",
+      "posicao": 25,
+      "conceito": "Investimento liquidado dividido pela receita corrente líquida."
+    },
+    {
+      "indicador": "Sucesso Planejamento Orçamentário",
+      "posicao": 23,
+      "conceito": "Despesa liquidada pela despesa total atualizada (dotação orçamentária)."
+    },
+    {
+      "indicador": "Resultado Primário",
+      "posicao": 22,
+      "conceito": "Diferença entre receita primária realizada e despesa primária empenhada no ano, dividida pelo PIB nominal do estado."
+    },
+    {
+      "indicador": "Índice de Liquidez",
+      "posicao": 22,
+      "conceito": "Obrigações financeiras divididas pelo caixa bruto. Quanto maior o indicador, pior."
+    },
+    {
+      "indicador": "Regra de Ouro",
+      "posicao": 23,
+      "conceito": "Diferença entre despesas de capital empenhadas e receita de operações de crédito, dividida pela receita corrente líquida."
+    }
+  ],
+  "ppps": [
+    {
+      "nome": "Prestação dos serviços de iluminação pública",
+      "status": "Contratada"
+    },
+    {
+      "nome": "Nova Saída Norte",
+      "status": "A contratar"
+    },
+    {
+      "nome": "Avenida das Cidades",
+      "status": "A contratar"
+    },
+    {
+      "nome": "Gestão do Aterro Sanitário",
+      "status": "A contratar"
+    },
+    {
+      "nome": "Ecoparques",
+      "status": "A contratar"
+    },
+    {
+      "nome": "Logística de Medicamentos",
+      "status": "A contratar"
+    },
+    {
+      "nome": "Rede de Apoio de Diagnóstico",
+      "status": "A contratar"
+    },
+    {
+      "nome": "Transporte Metroviário",
+      "status": "A contratar"
+    },
+    {
+      "nome": "VLT na W3",
+      "status": "A contratar"
+    },
+    {
+      "nome": "Processamento de roupas — Saúde",
+      "status": "A contratar"
+    },
+    {
+      "nome": "BRT Sul e Oeste",
+      "status": "Suspenso"
+    }
+  ],
+  "ppps_projecao": [
+    {
+      "ano": "2024",
+      "despesas_ppp": 45994989,
+      "rcl": 36114673967,
+      "pct": 0.13
+    },
+    {
+      "ano": "2025",
+      "despesas_ppp": 90917920,
+      "rcl": 39201192140,
+      "pct": 0.23
+    },
+    {
+      "ano": "2026",
+      "despesas_ppp": 1260702458,
+      "rcl": 39949057610,
+      "pct": 3.16
+    },
+    {
+      "ano": "2027",
+      "despesas_ppp": 1215885481,
+      "rcl": 40711190573,
+      "pct": 2.99
+    },
+    {
+      "ano": "2028",
+      "despesas_ppp": 1185325620,
+      "rcl": 41487863219,
+      "pct": 2.86
+    },
+    {
+      "ano": "2029",
+      "despesas_ppp": 1142180763,
+      "rcl": 42279352932,
+      "pct": 2.7
+    },
+    {
+      "ano": "2030",
+      "despesas_ppp": 1099291965,
+      "rcl": 43085942385,
+      "pct": 2.55
+    },
+    {
+      "ano": "2031",
+      "despesas_ppp": 1057320536,
+      "rcl": 43907919646,
+      "pct": 2.41
+    },
+    {
+      "ano": "2032",
+      "despesas_ppp": 1014191341,
+      "rcl": 44745578277,
+      "pct": 2.27
+    },
+    {
+      "ano": "2033",
+      "despesas_ppp": 971418599,
+      "rcl": 45599217441,
+      "pct": 2.13
+    },
+    {
+      "ano": "2034",
+      "despesas_ppp": 928983531,
+      "rcl": 46469142010,
+      "pct": 2
+    }
+  ]
+}
