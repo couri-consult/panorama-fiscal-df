@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "updated_at": "2026-05-11T13:26:19",
+    "updated_at": "2026-05-11T13:36:54",
     "rreo_current_period": "2026/1",
     "rreo_closed_period": "2025/6",
     "rgf_period": "2025/3",
@@ -83,8 +83,8 @@
     },
     {
       "chave": "beneficios",
-      "valor_bilhoes": "R$ 11,3 bi",
-      "sub": "48% da receita de impostos",
+      "valor_bilhoes": "R$ 13,4 bi",
+      "sub": "57% da receita de impostos",
       "cor": "amber"
     }
   ],

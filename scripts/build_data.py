@@ -75,13 +75,47 @@ def safely(label, fn, fallback):
 
 
 def load_all_manual_sheets():
+    """Read every sheet from manual.xlsx, normalizing the `chave` column.
+
+    Strips parenthetical suffixes from `chave` values (e.g. 'beneficios (R$ 1,00)'
+    becomes 'beneficios') so the user can document units inline without breaking
+    the chave→label mapping in index.html.
+    """
     import openpyxl
     wb = openpyxl.load_workbook(MANUAL_XLSX, data_only=True)
-    return {sheet: manual.read_sheet(wb, sheet) for sheet in wb.sheetnames}
+    sheets = {sheet: manual.read_sheet(wb, sheet) for sheet in wb.sheetnames}
+    for rows in sheets.values():
+        for row in rows:
+            ch = row.get("chave")
+            if isinstance(ch, str):
+                row["chave"] = re.sub(r"\s*\([^)]*\)\s*$", "", ch).strip()
+    return sheets
 
 
 def fmt_bi(reais, decimals=1):
     return f"R$ {reais/1e9:.{decimals}f} bi".replace(".", ",")
+
+
+def _coerce_to_reais(value):
+    """Accept either a numeric value (in reais) or a string like 'R$ 11,3 bi' and
+    return a float in reais. Returns None if the input isn't parseable."""
+    if value is None:
+        return None
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        return float(value)
+    s = str(value).strip()
+    m = re.search(r"([\d.,]+)\s*bi", s, re.IGNORECASE)
+    if m:
+        try:
+            return float(m.group(1).replace(".", "").replace(",", ".")) * 1e9
+        except ValueError:
+            return None
+    # Try parsing plain BR number (e.g. "13400000000" or "13.400.000.000")
+    s_clean = s.replace("R$", "").replace(" ", "").replace(".", "").replace(",", ".")
+    try:
+        return float(s_clean)
+    except ValueError:
+        return None
 
 
 def fmt_mi(reais):
@@ -219,27 +253,44 @@ def build():
         update_pessoal(pessoal, "rcl_bi", round(rcl / 1e9, 2))
         sources["pessoal.rcl_bi"] = "siconfi-rgf"
 
-    # KPI beneficios: total vem do manual (Beneficiômetro é Qlik sem API),
-    # mas o subtítulo com "% da receita de impostos" é calculado a partir da
+    # KPI beneficios: total vem do manual (Beneficiômetro é Qlik sem API).
+    # Aceita valor_bilhoes como número (em reais) ou string já formatada.
+    # O subtítulo "% da receita de impostos" é calculado a partir da
     # receita_impostos_realizada extraída do RREO de fechamento.
     receita_impostos = rreo_vals.get("receita_impostos_realizada")
     if receita_impostos:
-        # Parse the manual 'valor_bilhoes' string like 'R$ 11,3 bi' to bilhões.
         for row in kpis:
             if row.get("chave") != "beneficios":
                 continue
-            raw = str(row.get("valor_bilhoes") or "")
-            m = re.search(r"([\d,.]+)\s*bi", raw)
-            if not m:
+            beneficios_reais = _coerce_to_reais(row.get("valor_bilhoes"))
+            if beneficios_reais is None:
                 break
-            try:
-                beneficios_bi = float(m.group(1).replace(".", "").replace(",", "."))
-            except ValueError:
-                break
-            pct = beneficios_bi * 1e9 / receita_impostos * 100
+            pct = beneficios_reais / receita_impostos * 100
             row["sub"] = f"{pct:.0f}% da receita de impostos"
             sources["kpi.beneficios.sub"] = "siconfi-rreo-calc"
             break
+
+    # Normalize KPI valor_bilhoes coming from the manual XLSX to the dashboard's
+    # "R$ X,Y bi" display format:
+    #   - numbers (int/float in reais) → fmt_bi
+    #   - strings already in "R$ X,Y bi" → kept as-is
+    #   - strings that look like raw BR-formatted numbers ("13447362101,71") → fmt_bi
+    #   - non-monetary strings ("C", "4,7%", "R$ 570 mi") → kept as-is
+    for row in kpis:
+        v = row.get("valor_bilhoes")
+        if isinstance(v, (int, float)) and not isinstance(v, bool):
+            row["valor_bilhoes"] = fmt_bi(v)
+        elif isinstance(v, str):
+            s = v.strip()
+            # Skip strings that already look formatted or are non-monetary
+            if re.search(r"\bbi\b", s, re.IGNORECASE) or re.search(r"\bmi\b", s, re.IGNORECASE):
+                continue
+            if "%" in s or len(s) <= 2:
+                continue
+            # Try to coerce — if parseable to a meaningful reais value, reformat
+            n = _coerce_to_reais(s)
+            if n is not None and abs(n) >= 1e6:  # ≥ 1 milhão = monetary, not a small number
+                row["valor_bilhoes"] = fmt_bi(n)
 
     # KPI caixa: TOTAL (IV) do RGF atual
     caixa_total = rgf_caixa_vals.get("caixa_liquido_total")
