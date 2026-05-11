@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "updated_at": "2026-05-11T13:44:25",
+    "updated_at": "2026-05-11T14:04:16",
     "rreo_current_period": "2026/1",
     "rreo_closed_period": "2025/6",
     "rgf_period": "2025/3",
@@ -254,7 +254,7 @@
     },
     {
       "estado": "Média BR",
-      "pct": null,
+      "pct": 8.433333333333334,
       "ranking": null,
       "destaque": "green"
     }
@@ -538,7 +538,7 @@
       "eixo": 1,
       "cor": "green",
       "titulo": "Revisão do gasto direto",
-      "item": "Spending review de contratos e serviços continuados"
+      "item": "Revisão de contratos e serviços continuados"
     },
     {
       "eixo": 1,
@@ -562,7 +562,7 @@
       "eixo": 2,
       "cor": "blue",
       "titulo": "Receita e incentivos tributários",
-      "item": "ICMS representa 85% das renúncias — foco aqui"
+      "item": "Instituir governança sobre benefícios (prazo, contrapartidas, metas etc)"
     },
     {
       "eixo": 2,
@@ -580,13 +580,19 @@
       "eixo": 3,
       "cor": "amber",
       "titulo": "Poupança corrente e governança",
-      "item": "Marco fiscal de médio prazo com metas plurianuais"
+      "item": "Ampliar horizonte da política fiscal (metas plurianuais)"
     },
     {
       "eixo": 3,
       "cor": "amber",
       "titulo": "Poupança corrente e governança",
       "item": "Criar Junta / Comitê Fiscal permanente"
+    },
+    {
+      "eixo": 3,
+      "cor": "amber",
+      "titulo": "Poupança corrente e governança",
+      "item": "Internalizar FCDF no orçamento do DF"
     }
   ]
 }
