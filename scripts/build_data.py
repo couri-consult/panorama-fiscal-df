@@ -150,13 +150,26 @@ def build():
     for k in sheets:
         sources[k] = "manual"
 
-    # ---- 2. CAPAG (CSV local) ----
+    # ---- 2. CAPAG (CSV local + obs/conceito do manual) ----
     print("\n[2/4] Loading CAPAG (CSVs)...")
     capag_history, ok = safely("CAPAG", lambda: capag.load_history(CAPAG_DIR), {})
     if ok:
-        sheets["capag"] = transforms.build_capag_current(capag_history, RREO_CLOSED_YEAR)
+        # Indicators (notas + valores) vêm do CSV; mas obs e conceito ficam no
+        # manual.xlsx para ser editável (mensagens de "Para nota A: < 60%..." e
+        # as explicações longas). Faz merge por `indicador`.
+        manual_capag = sheets.get("capag", [])
+        manual_by_indicador = {str(r.get("indicador") or "").strip(): r for r in manual_capag}
+        csv_capag = transforms.build_capag_current(capag_history, RREO_CLOSED_YEAR)
+        for row in csv_capag:
+            m = manual_by_indicador.get(row.get("indicador", ""))
+            if m:
+                if m.get("obs"):
+                    row["obs"] = m["obs"]
+                if m.get("conceito"):
+                    row["conceito"] = m["conceito"]
+        sheets["capag"] = csv_capag
         sheets["capag_historico"] = transforms.build_capag_history(capag_history)
-        sources["capag"] = "csv-local"
+        sources["capag"] = "csv-local+manual(obs)"
         sources["capag_historico"] = "csv-local"
         print(f"  override CAPAG (years {sorted(capag_history.keys())})")
     capag_nota = capag_history.get(RREO_CLOSED_YEAR, {}).get("consolidado") if capag_history else None

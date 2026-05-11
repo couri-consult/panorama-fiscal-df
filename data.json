@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "updated_at": "2026-05-11T14:06:48",
+    "updated_at": "2026-05-11T14:11:28",
     "rreo_current_period": "2026/1",
     "rreo_closed_period": "2025/6",
     "rgf_period": "2025/3",
@@ -34,7 +34,7 @@
       "kpis": "manual",
       "investimentos": "manual",
       "caixa": "siconfi-rgf-anexo05",
-      "capag": "csv-local",
+      "capag": "csv-local+manual(obs)",
       "capag_historico": "csv-local",
       "ppps": "manual",
       "ppps_projecao": "manual",
@@ -292,7 +292,7 @@
       "nota": "A",
       "badge": "green",
       "valor": "30,85%",
-      "obs": "",
+      "obs": "Para nota A: < 60% (espaço de R$ 11,4 bi)",
       "conceito": "Mede a dívida consolidada do estado em relação à receita corrente líquida. Quanto menor, melhor. Abaixo de 60% da RCL = nota A."
     },
     {
@@ -300,7 +300,7 @@
       "nota": "C",
       "badge": "red",
       "valor": "95,27%",
-      "obs": "",
+      "obs": "Para nota B: < 95%",
       "conceito": "Mede quanto das receitas correntes é consumido pelas despesas correntes. Acima de 95% significa que o estado gasta quase tudo que arrecada só para se manter, sem sobrar para investir."
     },
     {
@@ -308,7 +308,7 @@
       "nota": "B",
       "badge": "amber",
       "valor": "1,01%",
-      "obs": "",
+      "obs": "Para nota A: ≥ 5%",
       "conceito": "Mede se o estado tem recursos disponíveis em caixa para honrar suas obrigações de curto prazo. Entre 0% e 5% = nota B."
     }
   ],
