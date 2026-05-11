@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "updated_at": "2026-05-11T12:37:40",
+    "updated_at": "2026-05-11T13:26:19",
     "rreo_current_period": "2026/1",
     "rreo_closed_period": "2025/6",
     "rgf_period": "2025/3",
@@ -46,6 +46,7 @@
       "kpi.capag": "csv-local",
       "pessoal.atual_pct": "siconfi-rgf",
       "pessoal.rcl_bi": "siconfi-rgf",
+      "kpi.beneficios.sub": "siconfi-rreo-calc",
       "kpi.caixa": "siconfi-rgf-anexo05"
     }
   },

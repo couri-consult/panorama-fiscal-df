@@ -12,6 +12,7 @@ Run:
 """
 import json
 import os
+import re
 import sys
 import datetime
 import traceback
@@ -217,6 +218,28 @@ def build():
     if rcl:
         update_pessoal(pessoal, "rcl_bi", round(rcl / 1e9, 2))
         sources["pessoal.rcl_bi"] = "siconfi-rgf"
+
+    # KPI beneficios: total vem do manual (Beneficiômetro é Qlik sem API),
+    # mas o subtítulo com "% da receita de impostos" é calculado a partir da
+    # receita_impostos_realizada extraída do RREO de fechamento.
+    receita_impostos = rreo_vals.get("receita_impostos_realizada")
+    if receita_impostos:
+        # Parse the manual 'valor_bilhoes' string like 'R$ 11,3 bi' to bilhões.
+        for row in kpis:
+            if row.get("chave") != "beneficios":
+                continue
+            raw = str(row.get("valor_bilhoes") or "")
+            m = re.search(r"([\d,.]+)\s*bi", raw)
+            if not m:
+                break
+            try:
+                beneficios_bi = float(m.group(1).replace(".", "").replace(",", "."))
+            except ValueError:
+                break
+            pct = beneficios_bi * 1e9 / receita_impostos * 100
+            row["sub"] = f"{pct:.0f}% da receita de impostos"
+            sources["kpi.beneficios.sub"] = "siconfi-rreo-calc"
+            break
 
     # KPI caixa: TOTAL (IV) do RGF atual
     caixa_total = rgf_caixa_vals.get("caixa_liquido_total")
