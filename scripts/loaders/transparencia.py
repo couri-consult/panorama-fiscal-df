@@ -95,10 +95,53 @@ def extract_fcdf_total(response, fase="empenhado"):
     raw = item.get(fase)
     if raw is None:
         return None
-    # Portal da Transparência returns BR-formatted strings like "23.371.555.913,88".
-    # Strip thousands separator (.) first, then swap decimal (,) for (.).
+    return _parse_br_number(raw)
+
+
+def _parse_br_number(raw):
+    """Parse a Brazilian-formatted number string like '23.371.555.913,88' -> float."""
     try:
         s = str(raw).replace(".", "").replace(",", ".")
         return float(s)
     except (TypeError, ValueError):
         return None
+
+
+# ── FCDF dotação atualizada via web scraping (no API endpoint for this) ──
+import re
+
+_ORGAO_PAGE = "https://portaldatransparencia.gov.br/orgaos/25915-fundo-constitucional-do-distrito-federal"
+
+
+def fetch_fcdf_dotacao_atualizada(year):
+    """Scrape the Portal da Transparência public page for FCDF to get the *dotação atualizada*.
+
+    The /api-de-dados endpoints don't expose the authorized budget (LOA + suplementações);
+    only empenhado/liquidado/pago. The web page does show "Orçamento atualizado" though,
+    so we read it from the HTML. This is brittle to layout changes — if the regex stops
+    matching, check the page HTML and update _ORC_ATUALIZADO_RE.
+    """
+    print(f"[Transparência] FCDF dotação atualizada {year} (web scrape)")
+    try:
+        r = requests.get(_ORGAO_PAGE, params={"ano": year},
+                         headers={"User-Agent": UA, "Accept": "text/html"}, timeout=60)
+    except requests.RequestException as e:
+        print(f"  request failed: {type(e).__name__}: {e}")
+        return None
+    if r.status_code != 200:
+        print(f"  HTTP {r.status_code}")
+        return None
+    html = r.text
+    # The first "Orçamento atualizado" on the page is the KPI card; format is roughly:
+    #   Orçamento atualizado <tags> 28.412.205.591,00 <tags> R$ 28.412.205.591,00
+    # We grab the FIRST number after "Orçamento atualizado".
+    m = re.search(r'Orçamento\s+atualizado.*?([\d]{1,3}(?:\.\d{3})+,\d{2})', html, re.DOTALL)
+    if not m:
+        print("  could not parse 'Orçamento atualizado' from page")
+        return None
+    value = _parse_br_number(m.group(1))
+    if value is None:
+        print(f"  parser failed on {m.group(1)!r}")
+        return None
+    print(f"  → R$ {value/1e9:.2f} bi")
+    return value

@@ -83,12 +83,19 @@ def find_value(rows, *, cod_conta, coluna, conta=None):
 def extract_rreo_balanco(rows):
     """Extract budget figures from RREO Anexo 01 rows.
 
-    Returns dict with: orcamento_dotacao_atualizada, investimento_liquidado,
-    receita_impostos_realizada (all in BRL).
+    Returns dict with:
+      - orcamento_total_dotacao: linha TOTAL DAS DESPESAS (XII) = (X + XI), dotação atualizada
+      - investimento_liquidado: linha INVESTIMENTOS, coluna despesas liquidadas até o bimestre
+      - receita_impostos_realizada: linha Impostos, coluna receitas realizadas até o bimestre
+    All values are in BRL.
+
+    Note: SICONFI's RREO uses current MCASP layout. The line "(VIII)" in older RREO is
+    now "DespesasExcetoIntraOrcamentarias"; the total *including intras* is `TotalDespesas`
+    (XII = X + XI, where X = SUBTOTAL = VIII + IX and XI = amortização da dívida/refinanciamento).
     """
     return {
-        "orcamento_dotacao_atualizada": find_value(
-            rows, cod_conta="DespesasExcetoIntraOrcamentarias", coluna="DOTAÇÃO ATUALIZADA (e)"
+        "orcamento_total_dotacao": find_value(
+            rows, cod_conta="TotalDespesas", coluna="DOTAÇÃO ATUALIZADA (e)"
         ),
         "investimento_liquidado": find_value(
             rows, cod_conta="Investimentos", coluna="DESPESAS LIQUIDADAS ATÉ O BIMESTRE (h)"

@@ -45,12 +45,19 @@ MANUAL_XLSX = os.path.join(ROOT, "manual", "panorama_manual.xlsx")
 CAPAG_DIR = os.path.join(ROOT, "capag")
 OUTPUT = os.path.join(ROOT, "data.json")
 
-# Reference period for the current dashboard snapshot.
-DEFAULT_RREO_YEAR = 2025
-DEFAULT_RREO_BIM = 6
+# Reference periods for the current dashboard snapshot.
+# We use TWO RREO snapshots for different reasons:
+#   - RREO_CURRENT (2026/1): latest published, used for "Orçamento DF em 2026"
+#   - RREO_CLOSED  (2025/6): closing of 2025, used for investimento liquidado + receita
+#     de impostos realizada (so we compare full-year fiscal values, not partial 2026).
+RREO_CURRENT_YEAR = 2026
+RREO_CURRENT_BIM = 1
+RREO_CLOSED_YEAR = 2025
+RREO_CLOSED_BIM = 6
 DEFAULT_RGF_YEAR = 2025
 DEFAULT_RGF_QUAD = 3
 DEFAULT_POP_YEAR = 2024
+FCDF_BUDGET_YEAR = 2026  # ano do orçamento FCDF a buscar no Portal da Transparência
 
 
 def safely(label, fn, fallback):
@@ -112,12 +119,12 @@ def build():
     print("\n[2/4] Loading CAPAG (CSVs)...")
     capag_history, ok = safely("CAPAG", lambda: capag.load_history(CAPAG_DIR), {})
     if ok:
-        sheets["capag"] = transforms.build_capag_current(capag_history, DEFAULT_RREO_YEAR)
+        sheets["capag"] = transforms.build_capag_current(capag_history, RREO_CLOSED_YEAR)
         sheets["capag_historico"] = transforms.build_capag_history(capag_history)
         sources["capag"] = "csv-local"
         sources["capag_historico"] = "csv-local"
         print(f"  override CAPAG (years {sorted(capag_history.keys())})")
-    capag_nota = capag_history.get(DEFAULT_RREO_YEAR, {}).get("consolidado") if capag_history else None
+    capag_nota = capag_history.get(RREO_CLOSED_YEAR, {}).get("consolidado") if capag_history else None
 
     # ---- 3. IBGE população ----
     print(f"\n[3/4] Loading IBGE população {DEFAULT_POP_YEAR}...")
@@ -125,25 +132,31 @@ def build():
     if ok_pop:
         print(f"  população DF {DEFAULT_POP_YEAR}: {populacao_df:,}")
 
-    # ---- 4. SICONFI (RREO + RGF) ----
-    print(f"\n[4/4] Loading SICONFI RREO {DEFAULT_RREO_YEAR}/{DEFAULT_RREO_BIM}º bim and RGF {DEFAULT_RGF_YEAR}/{DEFAULT_RGF_QUAD}º quad...")
+    # ---- 4. SICONFI (RREO atual + fechamento) + RGF + Transparência ----
+    print(f"\n[4/4] Loading APIs (Transparência FCDF, SICONFI RREO atual+fechamento, RGF {DEFAULT_RGF_YEAR}/{DEFAULT_RGF_QUAD}º quad)...")
 
-    # FCDF execution from Portal da Transparência (skipped if no token)
-    fcdf_response, ok_fcdf = safely(
-        "Transparência FCDF",
-        lambda: transparencia.fetch_fcdf_execution(DEFAULT_RREO_YEAR),
+    # FCDF *dotação atualizada* (web scrape — não tem API)
+    fcdf_dotacao, ok_fcdf = safely(
+        "Transparência FCDF (dotação)",
+        lambda: transparencia.fetch_fcdf_dotacao_atualizada(FCDF_BUDGET_YEAR),
         None,
     )
-    fcdf_empenhado = transparencia.extract_fcdf_total(fcdf_response, "empenhado") if ok_fcdf else None
-    if fcdf_empenhado:
+    if ok_fcdf and fcdf_dotacao:
         update_kpi(sheets["kpis"], "fcdf",
-                   valor_bilhoes=fmt_bi(fcdf_empenhado),
-                   sub=f"Lei orçamentária da União ({DEFAULT_RREO_YEAR}, empenhado)")
-        sources["kpi.fcdf"] = "portal-transparencia"
+                   valor_bilhoes=fmt_bi(fcdf_dotacao),
+                   sub=f"Dotação atualizada {FCDF_BUDGET_YEAR}")
+        sources["kpi.fcdf"] = "portal-transparencia-scrape"
 
+    # RREO atual (orçamento DF 2026)
+    rreo_current, ok_rreo_current = safely(
+        f"RREO {RREO_CURRENT_YEAR}/{RREO_CURRENT_BIM} Anexo 01",
+        lambda: siconfi.fetch_rreo(RREO_CURRENT_YEAR, RREO_CURRENT_BIM, "RREO-Anexo 01"),
+        [],
+    )
+    # RREO fechamento (investimento e receita de impostos do ano completo anterior)
     rreo_balanco, ok_rreo = safely(
-        "RREO Anexo 01",
-        lambda: siconfi.fetch_rreo(DEFAULT_RREO_YEAR, DEFAULT_RREO_BIM, "RREO-Anexo 01"),
+        f"RREO {RREO_CLOSED_YEAR}/{RREO_CLOSED_BIM} Anexo 01",
+        lambda: siconfi.fetch_rreo(RREO_CLOSED_YEAR, RREO_CLOSED_BIM, "RREO-Anexo 01"),
         [],
     )
     rgf_dtp, ok_rgf_dtp = safely(
@@ -158,23 +171,30 @@ def build():
     )
 
     # Extract specific values & overlay into kpis/pessoal
+    rreo_current_vals = siconfi.extract_rreo_balanco(rreo_current) if ok_rreo_current else {}
     rreo_vals = siconfi.extract_rreo_balanco(rreo_balanco) if ok_rreo else {}
     rgf_dtp_vals = siconfi.extract_rgf_dtp(rgf_dtp) if ok_rgf_dtp else {}
     rgf_caixa_vals = siconfi.extract_rgf_caixa(rgf_caixa) if ok_rgf_caixa else {}
 
     print("\nValores extraídos do SICONFI:")
-    for k, v in {**rreo_vals, **rgf_dtp_vals, **rgf_caixa_vals}.items():
-        if v is not None:
-            unit = "" if k.startswith("pct") else " R$" if isinstance(v, (int, float)) and abs(v) > 1e6 else ""
-            print(f"  {k} = {v}{unit}")
+    for label, vals in [("RREO atual", rreo_current_vals), ("RREO fechamento", rreo_vals),
+                         ("RGF DTP", rgf_dtp_vals), ("RGF Caixa", rgf_caixa_vals)]:
+        for k, v in vals.items():
+            if v is not None:
+                unit = "" if k.startswith("pct") else " R$" if isinstance(v, (int, float)) and abs(v) > 1e6 else ""
+                print(f"  [{label}] {k} = {v}{unit}")
 
     # Overlay on KPIs and pessoal sheet
     kpis = sheets.get("kpis", [])
-    if rreo_vals.get("orcamento_dotacao_atualizada"):
-        update_kpi(kpis, "orcamento_df", valor_bilhoes=fmt_bi(rreo_vals["orcamento_dotacao_atualizada"]))
-        sources["kpi.orcamento_df"] = "siconfi-rreo-anexo01"
+    # Orçamento DF: usar TOTAL DAS DESPESAS (XII) do RREO atual (2026/1)
+    if rreo_current_vals.get("orcamento_total_dotacao"):
+        update_kpi(kpis, "orcamento_df",
+                   valor_bilhoes=fmt_bi(rreo_current_vals["orcamento_total_dotacao"]),
+                   sub=f"Dotação atualizada {RREO_CURRENT_YEAR} (RREO {RREO_CURRENT_BIM}º bim)")
+        sources["kpi.orcamento_df"] = "siconfi-rreo-atual"
 
     rcl = rgf_dtp_vals.get("rcl")
+    # Investimento e receita de impostos vêm do fechamento (2025/6º bim)
     inv = rreo_vals.get("investimento_liquidado")
     if rcl and inv:
         pct = (inv / rcl) * 100
@@ -202,16 +222,19 @@ def build():
     data = {
         "_meta": {
             "updated_at": datetime.datetime.now().isoformat(timespec="seconds"),
-            "rreo_period": f"{DEFAULT_RREO_YEAR}/{DEFAULT_RREO_BIM}",
+            "rreo_current_period": f"{RREO_CURRENT_YEAR}/{RREO_CURRENT_BIM}",
+            "rreo_closed_period": f"{RREO_CLOSED_YEAR}/{RREO_CLOSED_BIM}",
             "rgf_period": f"{DEFAULT_RGF_YEAR}/{DEFAULT_RGF_QUAD}",
             "populacao_df_year": DEFAULT_POP_YEAR,
             "populacao_df": populacao_df,
             "capag_nota_consolidada": capag_nota,
             "raw_siconfi": {
-                "rreo_balanco": rreo_vals,
+                "rreo_current": rreo_current_vals,
+                "rreo_closed": rreo_vals,
                 "rgf_dtp": rgf_dtp_vals,
                 "rgf_caixa": rgf_caixa_vals,
             },
+            "fcdf_dotacao_atualizada": fcdf_dotacao,
             "sources": sources,
         },
         "kpis": kpis,

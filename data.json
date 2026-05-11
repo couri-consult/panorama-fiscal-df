@@ -1,14 +1,20 @@
 {
   "_meta": {
-    "updated_at": "2026-05-11T12:01:03",
-    "rreo_period": "2025/6",
+    "updated_at": "2026-05-11T12:24:06",
+    "rreo_current_period": "2026/1",
+    "rreo_closed_period": "2025/6",
     "rgf_period": "2025/3",
     "populacao_df_year": 2024,
     "populacao_df": 2982818,
     "capag_nota_consolidada": "C",
     "raw_siconfi": {
-      "rreo_balanco": {
-        "orcamento_dotacao_atualizada": 45097440816.84,
+      "rreo_current": {
+        "orcamento_total_dotacao": 44051502056,
+        "investimento_liquidado": 48308542.72,
+        "receita_impostos_realizada": 4321604401.45
+      },
+      "rreo_closed": {
+        "orcamento_total_dotacao": 48832745074,
         "investimento_liquidado": 1833483393.14,
         "receita_impostos_realizada": 23406467689.42
       },
@@ -22,6 +28,7 @@
         "caixa_liquido_total_nao_vinculado": null
       }
     },
+    "fcdf_dotacao_atualizada": 28412205591.0,
     "sources": {
       "kpis": "manual",
       "investimentos": "manual",
@@ -32,8 +39,8 @@
       "ppps_projecao": "manual",
       "pessoal": "manual",
       "clp_ranking": "manual",
-      "kpi.fcdf": "portal-transparencia",
-      "kpi.orcamento_df": "siconfi-rreo-anexo01",
+      "kpi.fcdf": "portal-transparencia-scrape",
+      "kpi.orcamento_df": "siconfi-rreo-atual",
       "kpi.investimento_rcl": "siconfi-rreo+rgf",
       "kpi.capag": "csv-local",
       "pessoal.atual_pct": "siconfi-rgf",
@@ -43,14 +50,14 @@
   "kpis": [
     {
       "chave": "orcamento_df",
-      "valor_bilhoes": "R$ 45,1 bi",
-      "sub": null,
+      "valor_bilhoes": "R$ 44,1 bi",
+      "sub": "Dotação atualizada 2026 (RREO 1º bim)",
       "cor": "blue"
     },
     {
       "chave": "fcdf",
-      "valor_bilhoes": "R$ 25,2 bi",
-      "sub": "Lei orçamentária da União (2025, empenhado)",
+      "valor_bilhoes": "R$ 28,4 bi",
+      "sub": "Dotação atualizada 2026",
       "cor": "blue"
     },
     {
