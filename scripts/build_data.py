@@ -218,6 +218,35 @@ def build():
         update_pessoal(pessoal, "rcl_bi", round(rcl / 1e9, 2))
         sources["pessoal.rcl_bi"] = "siconfi-rgf"
 
+    # KPI caixa: TOTAL (IV) do RGF atual
+    caixa_total = rgf_caixa_vals.get("caixa_liquido_total")
+    if caixa_total is not None:
+        # display as "R$ X mi" when below 10 bi (more readable for small values)
+        if abs(caixa_total) < 10e9:
+            label = f"R$ {caixa_total/1e6:.0f} mi"
+        else:
+            label = fmt_bi(caixa_total)
+        cor = "red" if caixa_total < 1e9 else "amber" if caixa_total < 3e9 else "green"
+        update_kpi(kpis, "caixa",
+                   valor_bilhoes=label,
+                   sub=f"Disponibilidade líquida — dez/{DEFAULT_RGF_YEAR}",
+                   cor=cor)
+        sources["kpi.caixa"] = "siconfi-rgf-anexo05"
+
+    # Tabela histórica de caixa — busca RGF Anexo 05 para cada ano de 2021 até DEFAULT_RGF_YEAR
+    print(f"\nFetching caixa history {2021}..{DEFAULT_RGF_YEAR}")
+    caixa_history = safely(
+        "caixa history",
+        lambda: siconfi.fetch_caixa_history(range(2021, DEFAULT_RGF_YEAR + 1)),
+        [],
+    )
+    if isinstance(caixa_history, tuple):
+        caixa_history, _ok = caixa_history
+    if caixa_history:
+        sheets["caixa"] = caixa_history
+        sources["caixa"] = "siconfi-rgf-anexo05"
+        print(f"  caixa history: {len(caixa_history)} anos")
+
     # ---- Compose final data.json ----
     data = {
         "_meta": {

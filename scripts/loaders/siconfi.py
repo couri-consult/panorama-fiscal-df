@@ -125,21 +125,68 @@ def extract_rgf_dtp(rows):
 
 
 # ── RGF Anexo 05 — Disponibilidade de Caixa ──────────────────────
+# Coluna name is enormous and SICONFI stores it verbatim.
+CAIXA_COLUNA_LIQUIDA_APOS_RP = (
+    "DISPONIBILIDADE DE CAIXA LÍQUIDA (APÓS A INSCRIÇÃO EM RESTOS A PAGAR NÃO "
+    "PROCESSADOS DO EXERCÍCIO) (i) = (g - h)"
+)
+# cod_conta in SICONFI is "DisponibilidadeDeCaixaLiquidaAposRP" (note AposRP suffix).
+CAIXA_COD_CONTA = "DisponibilidadeDeCaixaLiquidaAposRP"
+
+
 def extract_rgf_caixa(rows):
     """Extract cash-availability figures from RGF Anexo 05.
 
-    The Anexo 05 is a matrix: each row groups multiple `conta` lines under one cod_conta.
-    We want the "TOTAL DOS RECURSOS NÃO VINCULADOS (I)" line for "Disponibilidade líquida"
-    (after RPNP inscription), plus the totalised liquid availability figure.
+    All values come from the column "DISPONIBILIDADE DE CAIXA LÍQUIDA (APÓS RPNP)".
+    - caixa_liquido_total: linha TOTAL — saldo líquido total
+        The label of this row changed across years:
+          - 2021, 2022: 'TOTAL (III) = (I + II)'   (before RPPS column was split out)
+          - 2023+     : 'TOTAL (IV) = (I + II + III)'
+    - caixa_liquido_nao_vinculado: linha TOTAL DOS RECURSOS NÃO VINCULADOS (I) — só os
+      recursos discricionários (negativo = passivo descoberto)
     """
-    # Coluna name is very long; SICONFI keeps it verbatim.
-    coluna_liq = "DISPONIBILIDADE DE CAIXA LÍQUIDA (APÓS A INSCRIÇÃO EM RESTOS A PAGAR NÃO PROCESSADOS DO EXERCÍCIO) (i) = (g - h)"
+    total = find_value(
+        rows, cod_conta=CAIXA_COD_CONTA, coluna=CAIXA_COLUNA_LIQUIDA_APOS_RP,
+        conta="TOTAL (IV) = (I + II + III)",
+    )
+    if total is None:  # fallback to legacy layout (2021-2022)
+        total = find_value(
+            rows, cod_conta=CAIXA_COD_CONTA, coluna=CAIXA_COLUNA_LIQUIDA_APOS_RP,
+            conta="TOTAL (III) = (I + II)",
+        )
     return {
-        "caixa_liquido_total_nao_vinculado": find_value(
-            rows, cod_conta="DisponibilidadeDeCaixaLiquida",
-            coluna=coluna_liq, conta="TOTAL DOS RECURSOS NÃO VINCULADOS (I)"
+        "caixa_liquido_total": total,
+        "caixa_liquido_nao_vinculado": find_value(
+            rows, cod_conta=CAIXA_COD_CONTA, coluna=CAIXA_COLUNA_LIQUIDA_APOS_RP,
+            conta="TOTAL DOS RECURSOS NÃO VINCULADOS (I)",
         ),
-        # The "caixa líquido" headline number that the dashboard shows is the TOTAL across
-        # all sources (vinculados + não vinculados). The cod_conta DisponibilidadeDeCaixaLiquida
-        # exposes that as another `conta` value — we'll discover it once we run against real data.
     }
+
+
+def fetch_caixa_history(years):
+    """Fetch RGF Anexo 05 for each year in `years` (using 3º quadrimestre = year close).
+
+    Returns list of dicts in the shape the dashboard's `caixa` sheet expects:
+        [{"ano": "2021", "caixa_liquido": 1920209349, "nao_vinculado": 916943191}, ...]
+    Years that fail or have no data are skipped (with a warning).
+    """
+    history = []
+    for year in years:
+        try:
+            rows = fetch_rgf(year, 3, "RGF-Anexo 05")
+        except Exception as e:
+            print(f"  [caixa history] {year} skipped: {type(e).__name__}: {e}")
+            continue
+        if not rows:
+            print(f"  [caixa history] {year} empty")
+            continue
+        v = extract_rgf_caixa(rows)
+        if v.get("caixa_liquido_total") is None:
+            print(f"  [caixa history] {year} extraction returned None")
+            continue
+        history.append({
+            "ano": str(year),
+            "caixa_liquido": v["caixa_liquido_total"],
+            "nao_vinculado": v["caixa_liquido_nao_vinculado"],
+        })
+    return history

@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "updated_at": "2026-05-11T12:24:06",
+    "updated_at": "2026-05-11T12:37:40",
     "rreo_current_period": "2026/1",
     "rreo_closed_period": "2025/6",
     "rgf_period": "2025/3",
@@ -25,14 +25,15 @@
         "pct_pessoal_rcl_ajustada": 41.46
       },
       "rgf_caixa": {
-        "caixa_liquido_total_nao_vinculado": null
+        "caixa_liquido_total": 569983266.93,
+        "caixa_liquido_nao_vinculado": -876632452.24
       }
     },
     "fcdf_dotacao_atualizada": 28412205591.0,
     "sources": {
       "kpis": "manual",
       "investimentos": "manual",
-      "caixa": "manual",
+      "caixa": "siconfi-rgf-anexo05",
       "capag": "csv-local",
       "capag_historico": "csv-local",
       "ppps": "manual",
@@ -44,7 +45,8 @@
       "kpi.investimento_rcl": "siconfi-rreo+rgf",
       "kpi.capag": "csv-local",
       "pessoal.atual_pct": "siconfi-rgf",
-      "pessoal.rcl_bi": "siconfi-rgf"
+      "pessoal.rcl_bi": "siconfi-rgf",
+      "kpi.caixa": "siconfi-rgf-anexo05"
     }
   },
   "kpis": [
@@ -75,7 +77,7 @@
     {
       "chave": "caixa",
       "valor_bilhoes": "R$ 570 mi",
-      "sub": "Dado de dez/2025",
+      "sub": "Disponibilidade líquida — dez/2025",
       "cor": "red"
     },
     {
@@ -258,28 +260,28 @@
   "caixa": [
     {
       "ano": "2021",
-      "caixa_liquido": 1920209349,
-      "nao_vinculado": 916943191
+      "caixa_liquido": 1920209349.21,
+      "nao_vinculado": 916943191.26
     },
     {
       "ano": "2022",
-      "caixa_liquido": 1581433753,
-      "nao_vinculado": -65395875
+      "caixa_liquido": 1581433753.14,
+      "nao_vinculado": -65395874.94
     },
     {
       "ano": "2023",
-      "caixa_liquido": 2897237502,
-      "nao_vinculado": 414960383
+      "caixa_liquido": 2897237501.56,
+      "nao_vinculado": 414960383.39
     },
     {
       "ano": "2024",
-      "caixa_liquido": 1868160949,
-      "nao_vinculado": -645377136
+      "caixa_liquido": 1868160948.74,
+      "nao_vinculado": -645377136.22
     },
     {
       "ano": "2025",
-      "caixa_liquido": 569983267,
-      "nao_vinculado": -876632452
+      "caixa_liquido": 569983266.93,
+      "nao_vinculado": -876632452.24
     }
   ],
   "capag": [
