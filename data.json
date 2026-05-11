@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "updated_at": "2026-05-10T12:32:41",
+    "updated_at": "2026-05-11T12:01:03",
     "rreo_period": "2025/6",
     "rgf_period": "2025/3",
     "populacao_df_year": 2024,
@@ -12,7 +12,12 @@
         "investimento_liquidado": 1833483393.14,
         "receita_impostos_realizada": 23406467689.42
       },
-      "rgf_dtp": {},
+      "rgf_dtp": {
+        "rcl": 39201192140.12,
+        "rcl_ajustada": 39011021845.82,
+        "despesa_pessoal_total": null,
+        "pct_pessoal_rcl_ajustada": 41.46
+      },
       "rgf_caixa": {
         "caixa_liquido_total_nao_vinculado": null
       }
@@ -27,8 +32,12 @@
       "ppps_projecao": "manual",
       "pessoal": "manual",
       "clp_ranking": "manual",
+      "kpi.fcdf": "portal-transparencia",
       "kpi.orcamento_df": "siconfi-rreo-anexo01",
-      "kpi.capag": "csv-local"
+      "kpi.investimento_rcl": "siconfi-rreo+rgf",
+      "kpi.capag": "csv-local",
+      "pessoal.atual_pct": "siconfi-rgf",
+      "pessoal.rcl_bi": "siconfi-rgf"
     }
   },
   "kpis": [
@@ -40,8 +49,8 @@
     },
     {
       "chave": "fcdf",
-      "valor_bilhoes": "R$ 28,4 bi",
-      "sub": "38% da despesa total (2025)",
+      "valor_bilhoes": "R$ 25,2 bi",
+      "sub": "Lei orçamentária da União (2025, empenhado)",
       "cor": "blue"
     },
     {
@@ -353,7 +362,7 @@
   "pessoal": [
     {
       "chave": "atual_pct",
-      "valor": 41.5
+      "valor": 41.46
     },
     {
       "chave": "alerta_pct",

@@ -20,7 +20,25 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
 
-from loaders import siconfi, ibge, capag, manual  # noqa: E402
+
+def _load_dotenv(path):
+    """Tiny inline .env reader (KEY=value, ignores comments/blanks). Avoids dotenv dep."""
+    if not os.path.exists(path):
+        return
+    with open(path, encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            k, v = line.split("=", 1)
+            k, v = k.strip(), v.strip().strip('"').strip("'")
+            if k and k not in os.environ:
+                os.environ[k] = v
+
+
+_load_dotenv(os.path.join(ROOT, ".env"))
+
+from loaders import siconfi, ibge, capag, manual, transparencia  # noqa: E402
 import transforms  # noqa: E402
 
 MANUAL_XLSX = os.path.join(ROOT, "manual", "panorama_manual.xlsx")
@@ -109,6 +127,19 @@ def build():
 
     # ---- 4. SICONFI (RREO + RGF) ----
     print(f"\n[4/4] Loading SICONFI RREO {DEFAULT_RREO_YEAR}/{DEFAULT_RREO_BIM}º bim and RGF {DEFAULT_RGF_YEAR}/{DEFAULT_RGF_QUAD}º quad...")
+
+    # FCDF execution from Portal da Transparência (skipped if no token)
+    fcdf_response, ok_fcdf = safely(
+        "Transparência FCDF",
+        lambda: transparencia.fetch_fcdf_execution(DEFAULT_RREO_YEAR),
+        None,
+    )
+    fcdf_empenhado = transparencia.extract_fcdf_total(fcdf_response, "empenhado") if ok_fcdf else None
+    if fcdf_empenhado:
+        update_kpi(sheets["kpis"], "fcdf",
+                   valor_bilhoes=fmt_bi(fcdf_empenhado),
+                   sub=f"Lei orçamentária da União ({DEFAULT_RREO_YEAR}, empenhado)")
+        sources["kpi.fcdf"] = "portal-transparencia"
 
     rreo_balanco, ok_rreo = safely(
         "RREO Anexo 01",
