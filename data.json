@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "updated_at": "2026-05-11T13:36:54",
+    "updated_at": "2026-05-11T13:44:25",
     "rreo_current_period": "2026/1",
     "rreo_closed_period": "2025/6",
     "rgf_period": "2025/3",
@@ -40,6 +40,7 @@
       "ppps_projecao": "manual",
       "pessoal": "manual",
       "clp_ranking": "manual",
+      "agenda": "manual",
       "kpi.fcdf": "portal-transparencia-scrape",
       "kpi.orcamento_df": "siconfi-rreo-atual",
       "kpi.investimento_rcl": "siconfi-rreo+rgf",
@@ -253,7 +254,7 @@
     },
     {
       "estado": "Média BR",
-      "pct": 8.433333333333334,
+      "pct": null,
       "ranking": null,
       "destaque": "green"
     }
@@ -530,6 +531,62 @@
       "despesas_ppp": 928983531,
       "rcl": 46469142010,
       "pct": 2
+    }
+  ],
+  "agenda": [
+    {
+      "eixo": 1,
+      "cor": "green",
+      "titulo": "Revisão do gasto direto",
+      "item": "Spending review de contratos e serviços continuados"
+    },
+    {
+      "eixo": 1,
+      "cor": "green",
+      "titulo": "Revisão do gasto direto",
+      "item": "Avaliação de efetividade de políticas e programas"
+    },
+    {
+      "eixo": 1,
+      "cor": "green",
+      "titulo": "Revisão do gasto direto",
+      "item": "Redesenho de programas sociais com baixa cobertura"
+    },
+    {
+      "eixo": 2,
+      "cor": "blue",
+      "titulo": "Receita e incentivos tributários",
+      "item": "Auditoria dos R$ 11,3 bi em benefícios fiscais"
+    },
+    {
+      "eixo": 2,
+      "cor": "blue",
+      "titulo": "Receita e incentivos tributários",
+      "item": "ICMS representa 85% das renúncias — foco aqui"
+    },
+    {
+      "eixo": 2,
+      "cor": "blue",
+      "titulo": "Receita e incentivos tributários",
+      "item": "Revisão cadastral e de base de cálculo do IPTU"
+    },
+    {
+      "eixo": 3,
+      "cor": "amber",
+      "titulo": "Poupança corrente e governança",
+      "item": "Reconstruir superávits correntes (sair da nota C)"
+    },
+    {
+      "eixo": 3,
+      "cor": "amber",
+      "titulo": "Poupança corrente e governança",
+      "item": "Marco fiscal de médio prazo com metas plurianuais"
+    },
+    {
+      "eixo": 3,
+      "cor": "amber",
+      "titulo": "Poupança corrente e governança",
+      "item": "Criar Junta / Comitê Fiscal permanente"
     }
   ]
 }

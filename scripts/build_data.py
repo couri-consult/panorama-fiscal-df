@@ -349,6 +349,7 @@ def build():
         "clp_ranking": sheets.get("clp_ranking", []),
         "ppps": sheets.get("ppps", []),
         "ppps_projecao": sheets.get("ppps_projecao", []),
+        "agenda": sheets.get("agenda", []),
     }
 
     with open(OUTPUT, "w", encoding="utf-8") as f:

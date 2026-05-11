@@ -202,23 +202,7 @@ footer{text-align:center;font-size:var(--text-label);color:var(--color-text-mute
 
   <section class="section" id="agenda">
     <div class="section-title">Agenda de Recuperação Fiscal — 3 Eixos Prioritários</div>
-    <div class="three-col">
-      <div class="agenda-box a-green"><h3>1. Revisão do gasto direto</h3><ul>
-        <li>Spending review de contratos e serviços continuados</li>
-        <li>Avaliação de efetividade de políticas e programas</li>
-        <li>Redesenho de programas sociais com baixa cobertura</li>
-      </ul></div>
-      <div class="agenda-box a-blue"><h3>2. Receita e incentivos tributários</h3><ul>
-        <li>Auditoria dos R$ 11,3 bi em benefícios fiscais</li>
-        <li>ICMS representa 85% das renúncias — foco aqui</li>
-        <li>Revisão cadastral e de base de cálculo do IPTU</li>
-      </ul></div>
-      <div class="agenda-box a-amber"><h3>3. Poupança corrente e governança</h3><ul>
-        <li>Reconstruir superávits correntes (sair da nota C)</li>
-        <li>Marco fiscal de médio prazo com metas plurianuais</li>
-        <li>Criar Junta / Comitê Fiscal permanente</li>
-      </ul></div>
-    </div>
+    <div class="three-col" id="agenda-grid"></div>
   </section>
 </main>
 
@@ -407,6 +391,28 @@ function renderPPPs(rows) {
   });
 }
 
+function renderAgenda(rows) {
+  if (!rows || !rows.length) return;
+  // Group items by eixo, preserving first-seen order and the (cor, titulo) of the eixo.
+  var groups = {};
+  var order = [];
+  rows.forEach(function(r){
+    var eixo = clean(r.eixo);
+    if (!groups[eixo]) {
+      groups[eixo] = { cor: clean(r.cor) || 'green', titulo: clean(r.titulo), itens: [] };
+      order.push(eixo);
+    }
+    var item = clean(r.item);
+    if (item) groups[eixo].itens.push(item);
+  });
+  var grid = document.getElementById('agenda-grid');
+  grid.innerHTML = order.map(function(eixo){
+    var g = groups[eixo];
+    var lis = g.itens.map(function(it){ return '<li>'+it+'</li>'; }).join('');
+    return '<div class="agenda-box a-'+g.cor+'"><h3>'+eixo+'. '+g.titulo+'</h3><ul>'+lis+'</ul></div>';
+  }).join('');
+}
+
 function renderPPPProj(rows) {
   var atual = rows.find(function(r){return clean(r.ano)==='2025';}) || rows[0];
   var pico  = rows.reduce(function(a,b){return num(b.pct)>num(a.pct)?b:a;}, rows[0]);
@@ -457,6 +463,7 @@ async function init() {
     renderCLP(d.clp_ranking || []);
     renderPPPs(d.ppps || []);
     renderPPPProj(d.ppps_projecao || []);
+    renderAgenda(d.agenda || []);
 
     document.getElementById('loading').style.display='none';
     document.getElementById('main').style.display='block';
