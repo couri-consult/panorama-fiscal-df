@@ -33,6 +33,18 @@ COLOR_MUTED = RGBColor(0x6B, 0x72, 0x80)
 COLOR_TEXT = RGBColor(0x1A, 0x1A, 0x1A)
 
 
+def cite_rreo(period_str):
+    """'2026/1' -> 'RREO – 1º bimestre de 2026'."""
+    year, bim = period_str.split("/")
+    return f"RREO – {bim}º bimestre de {year}"
+
+
+def cite_rgf(period_str, poder="Poder Executivo"):
+    """'2025/3' -> 'RGF – Poder Executivo – 3º quadrimestre de 2025'."""
+    year, quad = period_str.split("/")
+    return f"RGF – {poder} – {quad}º quadrimestre de {year}"
+
+
 def fmt_bi(reais, decimals=1):
     return f"R$ {reais/1e9:.{decimals}f} bi".replace(".", ",")
 
@@ -100,6 +112,16 @@ def add_bullet(doc, text):
     p = doc.add_paragraph(style="List Bullet")
     r = p.add_run(text)
     r.font.size = Pt(11)
+    return p
+
+
+def add_source(doc, text):
+    """Linha pequena em itálico cinza para 'Fonte: ...' abaixo de tabela ou parágrafo."""
+    p = doc.add_paragraph()
+    r = p.add_run(f"Fonte: {text}")
+    r.font.size = Pt(9)
+    r.font.italic = True
+    r.font.color.rgb = COLOR_MUTED
     return p
 
 
@@ -416,9 +438,14 @@ def build_report():
     fcdf = meta["fcdf_dotacao_atualizada"] or 0
     orc_total = meta["raw_siconfi"]["rreo_current"]["orcamento_total_dotacao"] or 0
 
+    src_rreo_current = cite_rreo(meta["rreo_current_period"])
+    src_rreo_closed = cite_rreo(meta["rreo_closed_period"])
+    src_rgf = cite_rgf(meta["rgf_period"])
+
     add_paragraph(doc,
-        f"O orçamento do Distrito Federal em 2026 é de {fmt_bi(orc_total)} (dotação atualizada própria) "
-        f"acrescido de {fmt_bi(fcdf)} do Fundo Constitucional (FCDF), totalizando "
+        f"O orçamento do Distrito Federal em 2026 é de {fmt_bi(orc_total)} (dotação atualizada própria, "
+        f"{src_rreo_current}) acrescido de {fmt_bi(fcdf)} do Fundo Constitucional (FCDF, dotação "
+        f"atualizada 2026 segundo o Portal da Transparência da União), totalizando "
         f"{fmt_bi(orc_total + fcdf)} para fazer frente às despesas do exercício. "
         f"Apesar do volume de recursos, o DF apresenta um quadro fiscal preocupante."
     )
@@ -430,7 +457,7 @@ def build_report():
         f"é consumida pela despesa corrente, sem margem para investir. A disponibilidade de "
         f"caixa líquida (após inscrição em Restos a Pagar) caiu de "
         f"{fmt_bi(data['caixa'][0]['caixa_liquido'])} em 2021 para "
-        f"{fmt_mi(rgf_caixa['caixa_liquido_total'])} em 2025, "
+        f"{fmt_mi(rgf_caixa['caixa_liquido_total'])} em 2025 ({src_rgf}, Anexo 05), "
         f"com recursos não vinculados negativos em "
         f"{fmt_mi(rgf_caixa['caixa_liquido_nao_vinculado'])}."
     )
@@ -440,8 +467,9 @@ def build_report():
         f"entre as 27 unidades da federação. Para alcançar a média nacional (8,4%) seriam "
         f"necessários R$ 1,5 bi/ano adicionais; para o nível do líder (Piauí, 17,0%), R$ 4,8 bi/ano. "
         f"A despesa com pessoal está em {fmt_pct(rgf_dtp['pct_pessoal_rcl_ajustada'])} da RCL "
-        f"ajustada — dentro do limite legal, mas próxima do alerta (44,1%). Os benefícios "
-        f"tributários totalizam R$ 13,4 bi, equivalente a 57% da receita realizada de impostos."
+        f"ajustada ({src_rgf}, Anexo 01) — dentro do limite legal, mas próxima do alerta (44,1%). "
+        f"Os benefícios tributários totalizam R$ 13,4 bi (dado da SEEC-DF), equivalente a 57% da "
+        f"receita realizada de impostos no ano ({src_rreo_closed}, Anexo 01)."
     )
 
     add_paragraph(doc,
@@ -457,6 +485,14 @@ def build_report():
     # ── Indicadores ─────────────────────────────────────────────────
     add_heading(doc, "Indicadores em destaque", level=1)
     add_kpi_table(doc, data["kpis"])
+    add_source(doc,
+        f"Orçamento DF: {src_rreo_current}, Anexo 01 (Balanço Orçamentário), linha "
+        f"\"TOTAL DAS DESPESAS (XII) = (X + XI)\", coluna DOTAÇÃO ATUALIZADA. "
+        f"FCDF: Portal da Transparência da União — órgão 25915. "
+        f"Investimento/RCL: cálculo a partir de {src_rreo_closed} (Anexo 01, linha INVESTIMENTOS) "
+        f"e {src_rgf} (Anexo 01, RCL). CAPAG: Tesouro Transparente. "
+        f"Caixa: {src_rgf}, Anexo 05. Benefícios: Beneficiômetro SEEC-DF."
+    )
     doc.add_paragraph()
 
     # ── Investimento ────────────────────────────────────────────────
@@ -467,6 +503,12 @@ def build_report():
         f"Piauí (17%), Espírito Santo (14,8%) e Maranhão (14%). Em termos absolutos, o "
         f"investimento liquidado evoluiu de R$ 0,7 bi em 2021 para "
         f"{fmt_bi(rreo_closed['investimento_liquidado'])} em 2025."
+    )
+    add_source(doc,
+        f"Investimento liquidado: {src_rreo_closed}, Anexo 01, linha INVESTIMENTOS, "
+        f"coluna DESPESAS LIQUIDADAS ATÉ O BIMESTRE. "
+        f"RCL: {src_rgf}, Anexo 01, linha RECEITA CORRENTE LÍQUIDA (IV). "
+        f"Ranking entre UFs: SICONFI (compilação manual a partir do RREO do exercício)."
     )
     add_paragraph(doc, "Lacunas (gaps) para fechar:", bold=True)
     add_bullet(doc, "Para atingir a média nacional (8,4% da RCL): +R$ 1,5 bi/ano")
@@ -483,10 +525,12 @@ def build_report():
     )
     doc.add_paragraph()
     add_capag_table(doc, data["capag"], data["capag_historico"], meta.get("capag_nota_consolidada"))
+    add_source(doc, "Tesouro Nacional / Tesouro Transparente — CAPAG dos Estados (publicação anual).")
 
     doc.add_paragraph()
     add_paragraph(doc, "Histórico (2018–2025):", bold=True)
     add_capag_hist_table(doc, data["capag_historico"])
+    add_source(doc, "Tesouro Nacional / Tesouro Transparente — CAPAG dos Estados (publicações anuais 2018–2025).")
     doc.add_paragraph()
     add_paragraph(doc,
         "O DF estava na nota B (2021–2023) e voltou à C em 2024 após deterioração da "
@@ -506,6 +550,13 @@ def build_report():
     )
     doc.add_paragraph()
     add_caixa_table(doc, data["caixa"])
+    add_source(doc,
+        f"RGF – Poder Executivo – 3º quadrimestre de cada exercício (2021 a 2025), "
+        f"Anexo 05 — Demonstrativo da Disponibilidade de Caixa e dos Restos a Pagar. "
+        f"Linha TOTAL ({chr(0x201C)}IV = I+II+III{chr(0x201D)} desde 2023, {chr(0x201C)}III = I+II{chr(0x201D)} em 2021-22) e linha "
+        f"TOTAL DOS RECURSOS NÃO VINCULADOS (I), coluna DISPONIBILIDADE DE CAIXA LÍQUIDA "
+        f"(APÓS A INSCRIÇÃO EM RESTOS A PAGAR NÃO PROCESSADOS DO EXERCÍCIO)."
+    )
     doc.add_paragraph()
     add_paragraph(doc,
         f"O caixa líquido caiu de {fmt_bi(data['caixa'][0]['caixa_liquido'])} em 2021 "
@@ -527,6 +578,10 @@ def build_report():
     )
     doc.add_paragraph()
     add_pessoal_table(doc, data["pessoal"])
+    add_source(doc,
+        f"{src_rgf}, Anexo 01 — Demonstrativo da Despesa com Pessoal. "
+        f"Linha DESPESA TOTAL COM PESSOAL – DTP (VI), coluna % SOBRE A RCL AJUSTADA."
+    )
     doc.add_paragraph()
     add_paragraph(doc,
         "Embora o DF esteja dentro dos limites da LRF, qualquer movimento de "
@@ -544,10 +599,11 @@ def build_report():
     add_paragraph(doc,
         f"O valor total de benefícios tributários concedidos pelo DF em 2025 foi "
         f"de R$ {beneficios_bi:.1f} bi".replace(".", ",") +
-        f", o que equivale a {pct:.0f}% da receita realizada de impostos no exercício "
-        f"({fmt_bi(receita_imp)}). É um volume expressivo, com implicações fiscais "
-        f"diretas: cada ponto percentual a menos de benefício pode liberar centenas de "
-        f"milhões de reais para outras finalidades (caixa, investimento, pessoal)."
+        f" (Beneficiômetro SEEC-DF), o que equivale a {pct:.0f}% da receita realizada "
+        f"de impostos no exercício ({fmt_bi(receita_imp)} — {src_rreo_closed}, Anexo 01, "
+        f"linha Impostos, coluna RECEITAS REALIZADAS ATÉ O BIMESTRE). É um volume expressivo, "
+        f"com implicações fiscais diretas: cada ponto percentual a menos de benefício pode "
+        f"liberar centenas de milhões de reais para outras finalidades (caixa, investimento, pessoal)."
     )
     add_paragraph(doc,
         "Os principais campos de atenção:"
@@ -573,6 +629,10 @@ def build_report():
     doc.add_paragraph()
     add_paragraph(doc, "Carteira de projetos:", bold=True)
     add_ppp_table(doc, data["ppps"])
+    add_source(doc,
+        f"Lista de projetos e projeção de comprometimento: Demonstrativo das Parcerias "
+        f"Público-Privadas do {src_rreo_closed}, Anexo 13."
+    )
     doc.add_paragraph()
 
     # ── Agenda ─────────────────────────────────────────────────────
@@ -623,12 +683,14 @@ def build_report():
     add_paragraph(doc,
         f"Atualização dos dados: {meta['updated_at']}", italic=True, color=COLOR_MUTED
     )
-    add_bullet(doc, f"SICONFI/STN — RREO {meta['rreo_current_period']} (atual) e {meta['rreo_closed_period']} (fechamento), RGF {meta['rgf_period']}")
-    add_bullet(doc, "Tesouro Transparente — CAPAG (CSV anual)")
-    add_bullet(doc, "IBGE — população do DF (estimativa)")
+    add_bullet(doc, f"SICONFI/STN — {src_rreo_current} (orçamento DF 2026)")
+    add_bullet(doc, f"SICONFI/STN — {src_rreo_closed} (investimento liquidado, receita de impostos, PPPs)")
+    add_bullet(doc, f"SICONFI/STN — {src_rgf} (RCL, DTP e disponibilidade de caixa)")
+    add_bullet(doc, "SICONFI/STN — RGF – Poder Executivo – 3º quadrimestre dos exercícios 2021 a 2024 (histórico de caixa)")
+    add_bullet(doc, "Tesouro Transparente — CAPAG dos Estados (publicações anuais 2018–2025)")
+    add_bullet(doc, "IBGE — população residente estimada (SIDRA, agregado 6579)")
     add_bullet(doc, "Portal da Transparência da União — dotação atualizada do FCDF (órgão 25915)")
     add_bullet(doc, "Beneficiômetro SEEC-DF — valor total dos benefícios tributários")
-    add_bullet(doc, "RREO do DF — informações sobre PPPs e projeções")
     add_paragraph(doc,
         "Painel ao vivo: https://couri-consult.github.io/panorama-fiscal-df/",
         italic=True, color=COLOR_MUTED
