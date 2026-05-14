@@ -54,6 +54,8 @@ PENDENTES — PRIORIDADE ALTA
       - Mostrar valor R$/hab no diagnóstico ou novo sub no card
     Esforço: ~15min.
 
+[11] Criar card para riscos fiscais com base no anexo de riscos fiscais do PLDO 2027
+
 ═══════════════════════════════════════════════════════════════════
 PENDENTES — PRIORIDADE MÉDIA
 ═══════════════════════════════════════════════════════════════════
