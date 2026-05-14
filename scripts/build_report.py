@@ -20,7 +20,7 @@ from docx.oxml import OxmlElement
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 DATA = os.path.join(ROOT, "data.json")
-OUTPUT = os.path.join(ROOT, "docs", "relatorio_executivo.docx")
+OUTPUT = os.path.join(ROOT, "docs", "agenda-politica-fiscal.docx")
 
 # Theme — alinhado com o painel (verde STN + neutros)
 COLOR_HEADER_DARK = RGBColor(0x1B, 0x5E, 0x20)   # --g800
