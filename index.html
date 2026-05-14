@@ -134,7 +134,7 @@ footer{text-align:center;font-size:var(--text-label);color:var(--color-text-mute
     <div class="card">
       <div class="card-title">Ranking Investimento/RCL por estado — 2025</div>
       <div id="inv-chart-wrap" style="position:relative;"><canvas id="chartInv" role="img" aria-label="Ranking de investimento/RCL por estado"></canvas></div>
-      <div class="fonte">Fonte: Siconfi/Tesouro</div>
+      <div class="fonte" id="fonte-investimentos">Fonte: Siconfi/Tesouro</div>
     </div>
   </section>
 
@@ -156,7 +156,7 @@ footer{text-align:center;font-size:var(--text-label);color:var(--color-text-mute
         <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--color-bg-soft);margin-right:4px;"></span>Caixa líquido</span>
         <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--color-negative);margin-right:4px;"></span>Rec. não vinculados</span>
       </div>
-      <div class="fonte">Fonte: Siconfi/Tesouro</div>
+      <div class="fonte" id="fonte-caixa">Fonte: Siconfi/Tesouro</div>
     </div>
   </section>
 
@@ -166,7 +166,7 @@ footer{text-align:center;font-size:var(--text-label);color:var(--color-text-mute
       <div class="card">
         <div class="card-title">Poder Executivo — % da RCL</div>
         <table id="pessoal-table"></table>
-        <div class="fonte">Fonte: Siconfi/Tesouro. Dados de dez/2025</div>
+        <div class="fonte" id="fonte-pessoal">Fonte: Siconfi/Tesouro</div>
       </div>
       <div class="card">
         <div class="card-title">Ranking CLP — Solidez Fiscal (2024): <span id="clp-pos" style="color:var(--color-negative);font-weight:700;"></span></div>
@@ -187,7 +187,7 @@ footer{text-align:center;font-size:var(--text-label);color:var(--color-text-mute
           <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--blue);margin-right:4px;"></span>A contratar</span>
           <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--color-warning);margin-right:4px;"></span>Suspenso</span>
         </div>
-        <div class="fonte">Fonte: RREO de dezembro de 2025</div>
+        <div class="fonte" id="fonte-ppps">Fonte: Siconfi/Tesouro</div>
       </div>
       <div class="card">
         <div class="card-title">Comprometimento da RCL com PPPs</div>
@@ -195,7 +195,7 @@ footer{text-align:center;font-size:var(--text-label);color:var(--color-text-mute
         <button class="btn-legal" onclick="document.getElementById('modal-ppp').classList.add('open')">⚠ Limites legais de PPP</button>
         <div style="position:relative;height:190px;"><canvas id="chartPPP" role="img" aria-label="Projeção comprometimento RCL com PPPs"></canvas></div>
         <div style="font-size:11px;color:var(--color-text-muted);margin-top:6px;text-align:center;">Linha tracejada = limite legal de 5% da RCL</div>
-        <div class="fonte">Fonte: RREO de dezembro de 2025</div>
+        <div class="fonte" id="fonte-ppps-proj">Fonte: Siconfi/Tesouro</div>
       </div>
     </div>
   </section>
@@ -228,6 +228,29 @@ function fbi(v){v=parseFloat(String(v).replace(/\s/g,''));if(isNaN(v))return'';v
 function clean(v){if(v===null||v===undefined)return'';return String(v).trim();}
 function num(v){return parseFloat(String(v).replace(/\s/g,'').replace(',','.'));}
 function cssVar(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
+
+// Citação textual dos relatórios SICONFI (mirrors scripts/build_report.py)
+function citeRreo(period){
+  var p = String(period||'').split('/');
+  if (p.length !== 2) return 'RREO';
+  return 'RREO – '+p[1]+'º bimestre de '+p[0];
+}
+function citeRgf(period){
+  var p = String(period||'').split('/');
+  if (p.length !== 2) return 'RGF – Poder Executivo';
+  return 'RGF – Poder Executivo – '+p[1]+'º quadrimestre de '+p[0];
+}
+
+function setSources(meta){
+  var srcRreoClosed = citeRreo(meta && meta.rreo_closed_period);
+  var srcRgf = citeRgf(meta && meta.rgf_period);
+  function set(id, txt){ var el=document.getElementById(id); if(el) el.textContent='Fonte: '+txt; }
+  set('fonte-investimentos', srcRreoClosed + ', Anexo 01 (Balanço Orçamentário) — linha INVESTIMENTOS, coluna DESPESAS LIQUIDADAS ATÉ O BIMESTRE. RCL via ' + srcRgf + ', Anexo 01.');
+  set('fonte-caixa', srcRgf + ', Anexo 05 (Demonstrativo da Disponibilidade de Caixa) — linha TOTAL (IV) e TOTAL DOS RECURSOS NÃO VINCULADOS (I), coluna APÓS RPNP. Histórico: 3º quad de cada exercício.');
+  set('fonte-pessoal', srcRgf + ', Anexo 01 (Demonstrativo da Despesa com Pessoal) — DTP (VI), % sobre a RCL Ajustada.');
+  set('fonte-ppps', srcRreoClosed + ', Anexo 13 (Demonstrativo das Parcerias Público-Privadas).');
+  set('fonte-ppps-proj', srcRreoClosed + ', Anexo 13 (Demonstrativo das Parcerias Público-Privadas) — projeção plurianual.');
+}
 
 // ── RENDER FUNCTIONS ─────────────────────────────────────────────
 function renderKpis(rows) {
@@ -454,6 +477,7 @@ async function init() {
       var el=document.getElementById(id); if(el) el.textContent=ref;
     });
 
+    setSources(meta);
     renderKpis(d.kpis || []);
     renderInvestimento(d.investimentos || []);
     renderCapag(d.capag || [], meta.capag_nota_consolidada || 'C');
