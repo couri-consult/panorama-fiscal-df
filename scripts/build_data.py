@@ -334,6 +334,15 @@ def build():
         sources["caixa"] = "siconfi-rgf-anexo05"
         print(f"  caixa history: {len(caixa_history)} anos")
 
+    # Posição geral do DF no ranking de competitividade CLP (texto livre vindo
+    # do manual.xlsx, aba 'clp_meta' linha 'pos_geral').
+    clp_meta_rows = sheets.get("clp_meta", [])
+    clp_pos_geral = ""
+    for r in clp_meta_rows:
+        if str(r.get("chave", "")).strip() == "pos_geral":
+            clp_pos_geral = str(r.get("valor", "")).strip()
+            break
+
     # ---- Compose final data.json ----
     data = {
         "_meta": {
@@ -344,6 +353,7 @@ def build():
             "populacao_df_year": DEFAULT_POP_YEAR,
             "populacao_df": populacao_df,
             "capag_nota_consolidada": capag_nota,
+            "clp_pos_geral": clp_pos_geral,
             "raw_siconfi": {
                 "rreo_current": rreo_current_vals,
                 "rreo_closed": rreo_vals,

@@ -169,7 +169,7 @@ footer{text-align:center;font-size:var(--text-label);color:var(--color-text-mute
         <div class="fonte" id="fonte-pessoal">Fonte: Siconfi/Tesouro</div>
       </div>
       <div class="card">
-        <div class="card-title">Ranking CLP — Solidez Fiscal (2024): <span id="clp-pos" style="color:var(--color-negative);font-weight:700;"></span></div>
+        <div class="card-title">Ranking CLP — Pilar Solidez Fiscal (2025): <span id="clp-pos" style="color:var(--color-negative);font-weight:700;"></span></div>
         <table id="clp-table"></table>
         <div class="fonte">Fonte: <a href="https://rankingdecompetitividade.org.br/estados/" target="_blank" rel="noopener">rankingdecompetitividade.org.br/estados/</a></div>
       </div>
@@ -393,15 +393,17 @@ function renderPessoal(rows) {
 }
 
 function renderCLP(rows) {
-  document.getElementById('clp-pos').textContent = '20º lugar (−8)';
+  var posEl = document.getElementById('clp-pos');
+  if (window.__clpPosGeral && posEl) posEl.textContent = window.__clpPosGeral;
   var t = document.getElementById('clp-table');
   t.innerHTML = '<tr><th>Indicador</th><th>Posição</th></tr>';
   rows.forEach(function(r) {
     var pos = num(r.posicao);
-    var b   = pos >= 20 ? 'red' : pos >= 10 ? 'amber' : 'green';
+    var b   = isNaN(pos) ? '' : (pos >= 20 ? 'red' : pos >= 10 ? 'amber' : 'green');
+    var posTxt = isNaN(pos) ? clean(r.posicao) : pos+'º';
     t.innerHTML += '<tr><td><span class="has-tip">'+clean(r.indicador)
       +'<span class="tip">'+clean(r.conceito)+'</span></span></td>'
-      +'<td style="text-align:center">'+bdg(pos+'º',b)+'</td></tr>';
+      +'<td style="text-align:center">'+(b ? bdg(posTxt,b) : posTxt)+'</td></tr>';
   });
 }
 
@@ -477,6 +479,8 @@ async function init() {
       var el=document.getElementById(id); if(el) el.textContent=ref;
     });
 
+    // posição geral do DF no ranking CLP (texto livre vindo do manual ou meta)
+    window.__clpPosGeral = (meta.clp_pos_geral || '');
     setSources(meta);
     renderKpis(d.kpis || []);
     renderInvestimento(d.investimentos || []);

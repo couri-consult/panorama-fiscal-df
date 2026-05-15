@@ -1,12 +1,13 @@
 {
   "_meta": {
-    "updated_at": "2026-05-11T14:11:28",
+    "updated_at": "2026-05-15T15:19:40",
     "rreo_current_period": "2026/1",
     "rreo_closed_period": "2025/6",
     "rgf_period": "2025/3",
     "populacao_df_year": 2024,
     "populacao_df": 2982818,
     "capag_nota_consolidada": "C",
+    "clp_pos_geral": "20º (↓8 vs 2024)",
     "raw_siconfi": {
       "rreo_current": {
         "orcamento_total_dotacao": 44051502056,
@@ -29,7 +30,7 @@
         "caixa_liquido_nao_vinculado": -876632452.24
       }
     },
-    "fcdf_dotacao_atualizada": 28412205591.0,
+    "fcdf_dotacao_atualizada": null,
     "sources": {
       "kpis": "manual",
       "investimentos": "manual",
@@ -39,9 +40,10 @@
       "ppps": "manual",
       "ppps_projecao": "manual",
       "pessoal": "manual",
-      "clp_ranking": "manual",
       "agenda": "manual",
-      "kpi.fcdf": "portal-transparencia-scrape",
+      "Planilha2": "manual",
+      "clp_ranking": "manual",
+      "clp_meta": "manual",
       "kpi.orcamento_df": "siconfi-rreo-atual",
       "kpi.investimento_rcl": "siconfi-rreo+rgf",
       "kpi.capag": "csv-local",
@@ -61,7 +63,7 @@
     {
       "chave": "fcdf",
       "valor_bilhoes": "R$ 28,4 bi",
-      "sub": "Dotação atualizada 2026",
+      "sub": "38% da despesa total (2025)",
       "cor": "blue"
     },
     {
@@ -254,7 +256,7 @@
     },
     {
       "estado": "Média BR",
-      "pct": 8.433333333333334,
+      "pct": null,
       "ranking": null,
       "destaque": "green"
     }
@@ -399,9 +401,24 @@
       "conceito": "Investimento liquidado dividido pela receita corrente líquida."
     },
     {
-      "indicador": "Sucesso Planejamento Orçamentário",
+      "indicador": "Regra de Ouro",
       "posicao": 23,
-      "conceito": "Despesa liquidada pela despesa total atualizada (dotação orçamentária)."
+      "conceito": "Diferença entre despesas de capital empenhadas e receita de operações de crédito, dividida pela receita corrente líquida."
+    },
+    {
+      "indicador": "Solvência Fiscal",
+      "posicao": 12,
+      "conceito": "Mede a relação entre dívida pública e receita corrente líquida ajustada — quanto menor, melhor. DF subiu uma posição em 2025."
+    },
+    {
+      "indicador": "Sucesso do Planejamento Orçamentário",
+      "posicao": 23,
+      "conceito": "Despesa liquidada dividida pela despesa total atualizada (dotação orçamentária)."
+    },
+    {
+      "indicador": "Dependência Fiscal",
+      "posicao": 3,
+      "conceito": "Mede o quanto o ente depende de transferências para sustentar suas despesas correntes. DF muito bem posicionado por arrecadação própria forte."
     },
     {
       "indicador": "Resultado Primário",
@@ -409,14 +426,19 @@
       "conceito": "Diferença entre receita primária realizada e despesa primária empenhada no ano, dividida pelo PIB nominal do estado."
     },
     {
+      "indicador": "Gasto com Pessoal",
+      "posicao": 4,
+      "conceito": "Despesa total com pessoal sobre a Receita Corrente Líquida (cumprimento da LRF)."
+    },
+    {
       "indicador": "Índice de Liquidez",
       "posicao": 22,
       "conceito": "Obrigações financeiras divididas pelo caixa bruto. Quanto maior o indicador, pior."
     },
     {
-      "indicador": "Regra de Ouro",
-      "posicao": 23,
-      "conceito": "Diferença entre despesas de capital empenhadas e receita de operações de crédito, dividida pela receita corrente líquida."
+      "indicador": "Poupança Corrente",
+      "posicao": 27,
+      "conceito": "Despesas correntes sobre receitas correntes — quanto maior, menos margem para investir. DF é o pior do país no indicador."
     }
   ],
   "ppps": [
