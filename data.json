@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "updated_at": "2026-05-15T15:19:40",
+    "updated_at": "2026-05-18T09:06:49",
     "rreo_current_period": "2026/1",
     "rreo_closed_period": "2025/6",
     "rgf_period": "2025/3",
@@ -30,27 +30,27 @@
         "caixa_liquido_nao_vinculado": -876632452.24
       }
     },
-    "fcdf_dotacao_atualizada": null,
+    "fcdf_dotacao_atualizada": 28412205591.0,
     "sources": {
       "kpis": "manual",
       "investimentos": "manual",
-      "caixa": "siconfi-rgf-anexo05",
-      "capag": "csv-local+manual(obs)",
-      "capag_historico": "csv-local",
       "ppps": "manual",
       "ppps_projecao": "manual",
-      "pessoal": "manual",
       "agenda": "manual",
-      "Planilha2": "manual",
       "clp_ranking": "manual",
       "clp_meta": "manual",
+      "capag": "csv-local+manual(obs)",
+      "pessoal": "manual",
+      "capag_historico": "csv-local",
+      "kpi.fcdf": "portal-transparencia-scrape",
       "kpi.orcamento_df": "siconfi-rreo-atual",
       "kpi.investimento_rcl": "siconfi-rreo+rgf",
       "kpi.capag": "csv-local",
       "pessoal.atual_pct": "siconfi-rgf",
       "pessoal.rcl_bi": "siconfi-rgf",
       "kpi.beneficios.sub": "siconfi-rreo-calc",
-      "kpi.caixa": "siconfi-rgf-anexo05"
+      "kpi.caixa": "siconfi-rgf-anexo05",
+      "caixa": "siconfi-rgf-anexo05"
     }
   },
   "kpis": [
@@ -63,7 +63,7 @@
     {
       "chave": "fcdf",
       "valor_bilhoes": "R$ 28,4 bi",
-      "sub": "38% da despesa total (2025)",
+      "sub": "Dotação atualizada 2026",
       "cor": "blue"
     },
     {
@@ -75,7 +75,7 @@
     {
       "chave": "capag",
       "valor_bilhoes": "C",
-      "sub": "Pior indicador: poupança corrente",
+      "sub": null,
       "cor": "red"
     },
     {
@@ -374,10 +374,6 @@
   ],
   "pessoal": [
     {
-      "chave": "atual_pct",
-      "valor": 41.46
-    },
-    {
       "chave": "alerta_pct",
       "valor": 44.1
     },
@@ -388,6 +384,10 @@
     {
       "chave": "maximo_pct",
       "valor": 49
+    },
+    {
+      "chave": "atual_pct",
+      "valor": 41.46
     },
     {
       "chave": "rcl_bi",

@@ -123,8 +123,15 @@ def fetch_fcdf_dotacao_atualizada(year):
     """
     print(f"[Transparência] FCDF dotação atualizada {year} (web scrape)")
     try:
+        # IMPORTANTE: CloudFront WAF do Portal da Transparência bloqueia com captcha
+        # (HTTP 405) quando o User-Agent não parece browser. Por isso usamos um UA
+        # Mozilla-like aqui (diferente do UA usado na API REST, que aceita o próprio).
+        browser_ua = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                      "AppleWebKit/537.36 (KHTML, like Gecko) "
+                      "Chrome/124.0.0.0 Safari/537.36")
         r = requests.get(_ORGAO_PAGE, params={"ano": year},
-                         headers={"User-Agent": UA, "Accept": "text/html"}, timeout=60)
+                         headers={"User-Agent": browser_ua, "Accept": "text/html"},
+                         timeout=60)
     except requests.RequestException as e:
         print(f"  request failed: {type(e).__name__}: {e}")
         return None

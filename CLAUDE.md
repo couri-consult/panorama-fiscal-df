@@ -74,18 +74,46 @@ Mirrors the previous Excel sheet names for backward compatibility with the rende
 
 ## Data sources today
 
-| Section | Source | Notes |
+### Por campo no data.json
+
+| Campo / KPI | Fonte | Notas |
 |---|---|---|
 | KPI orcamento_df | SICONFI RREO 2026/1 — `TotalDespesas (XII) = (X + XI)` × `DOTAÇÃO ATUALIZADA (e)` | id_ente=53 |
-| KPI fcdf | Portal da Transparência web scrape (page `/orgaos/25915-...`) | LOA endpoint não existe; scrape do "Orçamento atualizado" |
-| KPI investimento_rcl | SICONFI (calc: investimento_liquidado / RCL × 100) | RREO 2025/6 fechamento + RGF 2025/3 |
-| KPI capag | CAPAG CSVs locais | Atualização anual quando STN publica |
-| KPI caixa + tabela `caixa` | SICONFI RGF Anexo 05 (3º quad de cada ano) | `cod_conta=DisponibilidadeDeCaixaLiquidaAposRP` + conta TOTAL (IV) ou (III) |
-| KPI beneficios | manual | Beneficiômetro DF é Qlik Sense, sem API |
+| KPI fcdf | Portal da Transparência web scrape (page `/orgaos/25915-...`) | LOA endpoint não existe; scrape do "Orçamento atualizado". UA Mozilla-like p/ passar do WAF CloudFront. |
+| KPI investimento_rcl (valor) | SICONFI (calc: investimento_liquidado / RCL × 100) | RREO 2025/6 fechamento + RGF 2025/3 |
+| KPI investimento_rcl (sub) | Aba `investimentos` do manual — posição do DF | "20º lugar no Brasil" derivado do ranking manual |
+| KPI capag (nota) | CAPAG CSVs locais | Atualização anual quando STN publica |
+| KPI caixa + tabela `caixa` (5 anos) | SICONFI RGF Anexo 05 (3º quad de cada ano) | `cod_conta=DisponibilidadeDeCaixaLiquidaAposRP` + conta TOTAL (IV) ou (III) |
+| KPI beneficios (valor) | Aba `kpis` do manual (linha `beneficios`) | Beneficiômetro DF é Qlik Sense, sem API — entrada manual em reais |
+| KPI beneficios (sub) | calc: beneficios / receita_impostos_realizada × 100 | receita_impostos vem do RREO 2025/6 |
 | `investimentos` (ranking 27 UFs) | manual | Ainda não automatizado (requer 54 chamadas SICONFI) |
-| `pessoal.atual_pct`, `rcl_bi` | SICONFI RGF Anexo 01 (DTP) | linha `ReceitaCorrenteLiquidaLimiteLegal` + `DespesaComPessoalTotal` |
-| `clp_ranking` | manual | Sem API |
-| `ppps`, `ppps_projecao` | manual | Textual + forecast — manual ok |
+| `pessoal.atual_pct`, `rcl_bi` | SICONFI RGF Anexo 01 (DTP) | linha `ReceitaCorrenteLiquidaLimiteLegal` + `DespesaComPessoalTotal`. Inseridos via upsert no array de pessoal. |
+| `pessoal.alerta_pct/prudencial_pct/maximo_pct` | Manual (limites legais da LRF) | Aba `pessoal` |
+| `capag` indicadores (nota + valor) | CSVs locais (CAPAG) | nota/valor recomputados; `obs` e `conceito` mantidos do manual |
+| `capag` indicadores (obs + conceito) | Aba `capag` do manual | Textos descritivos (mensagens "Para nota A: < 60%" etc) |
+| `capag_historico` | Gerado dos CSVs locais (transforms) | — |
+| `clp_ranking` | Aba `clp_ranking` do manual | 9 indicadores do Pilar Solidez Fiscal — atualização anual quando CLP publica |
+| `_meta.clp_pos_geral` | Aba `clp_meta` linha `pos_geral` do manual | Texto livre p/ posição/delta (ex: "20º (↓8 vs 2024)") |
+| `ppps`, `ppps_projecao` | Aba `ppps` / `ppps_projecao` do manual | Textual + forecast — manual ok |
+| `agenda` | Aba `agenda` do manual | Eixos da agenda de recuperação fiscal — editável |
+
+### O que cada aba do `manual/panorama_manual.xlsx` contribui
+
+Após a limpeza de 18/05/2026, o manual contém **só o que o painel realmente lê**:
+
+| Aba | Colunas usadas | Função |
+|---|---|---|
+| `kpis` | `chave`, `valor_bilhoes`, `sub`, `cor` | Define a ordem dos 6 KPIs. Para `orcamento_df`, `fcdf`, `investimento_rcl`, `capag`, `caixa` os valores são sobrescritos pela API (linhas servem só de anchor). **`beneficios` é a única linha com valor manual editável**. |
+| `investimentos` | `estado`, `pct`, `ranking`, `destaque` | Ranking dos 27 UFs (manual integral) |
+| `capag` | `indicador`, `obs`, `conceito` | Textos descritivos — `nota`/`valor` vêm do CSV |
+| `pessoal` | `chave`, `valor` | Apenas limites LRF (`alerta_pct`, `prudencial_pct`, `maximo_pct`). `atual_pct` e `rcl_bi` são adicionados pela API. |
+| `clp_ranking` | `indicador`, `posicao`, `conceito` | 9 indicadores do CLP Pilar Solidez Fiscal |
+| `clp_meta` | `chave`, `valor` | `pos_geral` (texto p/ posição no pilar), `pos_geral_obs`, `ano_ranking` |
+| `ppps` | `nome`, `status` | Lista de PPPs (contratadas / a contratar / suspenso) |
+| `ppps_projecao` | `ano`, `despesas_ppp`, `rcl`, `pct` | Projeção plurianual |
+| `agenda` | `eixo`, `cor`, `titulo`, `item` | 3 eixos da Agenda de Recuperação Fiscal |
+
+Sumiram (não eram usadas): `caixa` (vem da API), `capag_historico` (gerado dos CSVs), `Planilha2` (lixo).
 
 ## SICONFI specifics (lessons learned)
 

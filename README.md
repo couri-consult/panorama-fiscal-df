@@ -15,7 +15,7 @@ panorama-fiscal-df/
 ├── data.json                # Gerado pelo build. Versionado no git.
 ├── styles/tokens.css        # Variáveis CSS (cores, sombras, raios).
 ├── manual/
-│   └── panorama_manual.xlsx # Fallback para seções sem API automatizada ainda.
+│   └── panorama_manual.xlsx # Só dados editáveis manualmente (sem fallback redundante).
 ├── capag/                   # CSVs anuais da CAPAG (download manual do Tesouro).
 ├── scripts/
 │   ├── build_data.py        # Orquestrador: lê .env, chama loaders, gera data.json.
@@ -86,22 +86,27 @@ GitHub Pages republica em 30-90 segundos. Para forçar reload no navegador: **Ct
 - Consulta **Portal da Transparência** (FCDF dotação atualizada via web scraping da página `/orgaos/25915`).
 - Consulta **IBGE SIDRA** (população do DF).
 - Lê os **CSVs da CAPAG** locais (`capag/capagdosestados{ano}.csv`) — atualização manual quando o Tesouro publica novo.
-- Lê o **manual.xlsx** como fallback e fonte para seções ainda não automatizadas (Beneficiômetro, ranking CLP, lista de PPPs, agenda).
-
-Se alguma API falhar, o build mantém o valor do manual — o painel sempre renderiza.
+- Lê o **manual.xlsx** para dados sem API equivalente (Beneficiômetro, CLP, PPPs, agenda, ranking 27 UFs).
 
 ### Atualizando dados que continuam manuais
 
-Algumas fontes não têm API:
+Cada aba do `manual/panorama_manual.xlsx` contém **só o que o painel realmente usa**. O que cada aba contribui:
 
-| Seção | Como atualizar |
-|---|---|
-| KPI **benefícios tributários** | Editar a aba `kpis` do `manual/panorama_manual.xlsx` |
-| **Ranking CLP** | Editar a aba `clp_ranking` do mesmo arquivo (atualização anual) |
-| **Lista de PPPs** | Editar a aba `ppps` (atualização quando houver novo contrato) |
-| **CAPAG anual** | Baixar o CSV do Tesouro Transparente e salvar em `capag/capagdosestados{ano}.csv` |
+| Aba | Colunas usadas | Quando atualizar |
+|---|---|---|
+| `kpis` | só a linha `beneficios (R$ 1,00)` tem valor real (em reais) — as 5 outras linhas são anchors para ordem dos cards | Quando o Beneficiômetro SEEC publica novo valor mensal/anual |
+| `investimentos` | `estado`, `pct`, `ranking`, `destaque` | Quando o RREO do fechamento de exercício for analisado para todos os UFs |
+| `capag` | `indicador`, `obs`, `conceito` (nota/valor vêm dos CSVs) | Raramente — textos descritivos do card |
+| `pessoal` | só limites legais da LRF (`alerta_pct`, `prudencial_pct`, `maximo_pct`) — atual e RCL vêm da API | Só se a legislação mudar (raríssimo) |
+| `clp_ranking` | `indicador`, `posicao`, `conceito` (9 indicadores do Pilar Solidez Fiscal) | Anual quando o CLP publica nova edição |
+| `clp_meta` | `pos_geral`, `pos_geral_obs`, `ano_ranking` | Junto com o `clp_ranking` |
+| `ppps` | `nome`, `status` | Quando houver novo contrato ou mudança de status |
+| `ppps_projecao` | `ano`, `despesas_ppp`, `rcl`, `pct` | Quando o RREO Anexo 13 trouxer projeção atualizada |
+| `agenda` | `eixo`, `cor`, `titulo`, `item` | Quando a agenda propositiva for revisada |
 
-Após editar, rode `python scripts/build_data.py` e faça push do `data.json` + arquivo manual modificado.
+Para **CAPAG anual**: baixar o CSV do Tesouro Transparente e salvar em `capag/capagdosestados{ano}.csv` (não vai no manual.xlsx).
+
+Após editar, rode `update.bat` (ou `python scripts/build_data.py && git add ... && git commit && git push`).
 
 ---
 
@@ -111,13 +116,14 @@ Cada chave do `data.json` alimenta uma seção do painel:
 
 | Chave | Seção do painel | Fonte hoje |
 |---|---|---|
-| `kpis` | Cartões da Visão Geral | API + manual (benefícios) |
-| `investimentos` | Ranking Investimento/RCL por estado | manual (ainda) |
-| `caixa` | Gráfico Disponibilidade de Caixa (5 anos) | API SICONFI RGF |
-| `capag` + `capag_historico` | Tabela CAPAG | CSVs locais |
-| `pessoal` | Despesa com Pessoal / LRF | API SICONFI RGF |
-| `clp_ranking` | Ranking CLP — Solidez Fiscal | manual |
+| `kpis` | Cartões da Visão Geral | API SICONFI/Transparência + manual (só `beneficios`) |
+| `investimentos` | Ranking Investimento/RCL por estado | manual |
+| `caixa` | Gráfico Disponibilidade de Caixa (5 anos) | API SICONFI RGF Anexo 05 |
+| `capag` + `capag_historico` | Tabela CAPAG | CSVs locais (nota/valor) + manual (obs/conceito) |
+| `pessoal` | Despesa com Pessoal / LRF | API SICONFI RGF (atual + RCL) + manual (limites LRF) |
+| `clp_ranking` | Ranking CLP — Pilar Solidez Fiscal | manual |
 | `ppps` + `ppps_projecao` | PPPs | manual |
+| `agenda` | Agenda de Recuperação Fiscal | manual |
 
 > ⚠️ **Não renomeie as chaves do JSON nem suas colunas** sem também atualizar o `index.html` — os nomes são referenciados como string literais nas funções `renderXxx`.
 

@@ -132,11 +132,15 @@ def update_kpi(kpis, chave, **fields):
 
 
 def update_pessoal(pessoal_rows, chave, value):
+    """Upsert: atualiza a linha existente pelo `chave`; se não existir, cria.
+    Permite que o manual.xlsx tenha apenas os limites legais (alerta/prudencial/máximo),
+    enquanto atual_pct e rcl_bi são adicionados em runtime a partir da API."""
     for row in pessoal_rows:
         if row.get("chave") == chave:
             row["valor"] = value
             return True
-    return False
+    pessoal_rows.append({"chave": chave, "valor": value})
+    return True
 
 
 def build():
@@ -246,8 +250,15 @@ def build():
     inv = rreo_vals.get("investimento_liquidado")
     if rcl and inv:
         pct = (inv / rcl) * 100
+        # Sub: posição do DF no ranking nacional (vem da aba `investimentos`)
+        invest_rows = sheets.get("investimentos", [])
+        df_row = next((r for r in invest_rows if str(r.get("estado", "")).strip() == "DF"), None)
+        sub_invest = ""
+        if df_row and df_row.get("ranking"):
+            sub_invest = f"{int(df_row['ranking'])}º lugar no Brasil"
         update_kpi(kpis, "investimento_rcl",
-                   valor_bilhoes=f"{pct:.1f}%".replace(".", ","))
+                   valor_bilhoes=f"{pct:.1f}%".replace(".", ","),
+                   sub=sub_invest)
         sources["kpi.investimento_rcl"] = "siconfi-rreo+rgf"
 
     if capag_nota:
