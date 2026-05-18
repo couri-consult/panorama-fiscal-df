@@ -1,45 +1,67 @@
 PANORAMA FISCAL DO DF — PRÓXIMOS PASSOS
-Última atualização: 11/05/2026
+Última atualização: 18/05/2026
 
 ═══════════════════════════════════════════════════════════════════
-REALIZADOS DESDE A ÚLTIMA REVISÃO (10/05 → 11/05)
+REALIZADOS DESDE A ÚLTIMA REVISÃO (11/05 → 18/05)
 ═══════════════════════════════════════════════════════════════════
 
-[1] ✅ RGF DTP capturado — RCL + DTP/pessoal vindo do SICONFI RGF Anexo 01.
-       Investimento/RCL agora é calculado de verdade (investimento_liq / RCL).
+[+] ✅ Nova seção BENEFÍCIOS TRIBUTÁRIOS detalhada
+       Dataset oficial do Beneficiômetro (dados.df.gov.br, ~19.6k linhas)
+       baixado para beneficiometro/renuncias-{ano}.txt e processado por
+       scripts/loaders/beneficios.py. Três gráficos no painel:
+         - Benefícios por tributo (verticais)
+         - 10 principais benefícios por valor + barra "Demais"
+         - 10 maiores beneficiários por valor, com setor inferido do CNAE
+       KPI 'beneficios' passa a vir do total agregado (R$ 13,4 bi exato).
 
-[2] ✅ RGF Anexo 05 calibrado — descoberto que cod_conta é
-       "DisponibilidadeDeCaixaLiquidaAposRP" (não DisponibilidadeDeCaixaLiquida).
-       Tabela TOTAL muda entre "(IV) = (I+II+III)" em 2023+ e
-       "(III) = (I+II)" em 2021-2022 — extrator tolera ambos.
-       KPI caixa + 5 anos de histórico no gráfico agora 100% automáticos.
+[+] ✅ Denominador do % benefícios trocou de SICONFI para manual
+       SICONFI RREO Anexo 01 (linha Impostos) NÃO inclui intra-orçamentárias.
+       O valor correto está no RREO Anexo 8, que não tem endpoint no
+       SICONFI. Coletado manualmente do RREO da SEEC-DF e inserido na aba
+       'kpis' linha auxiliar 'receita de impostos (R$ 1,00)'.
+       Resultado: 57% (SICONFI) → 51% (Anexo 8).
 
-[3] ✅ Período do orçamento: passamos a fazer 2 chamadas RREO:
-       - RREO 2026/1 → orçamento atual (TotalDespesas XII = X+XI)
-       - RREO 2025/6 → fechamento p/ investimento liquidado + impostos
-       Card "Orçamento DF em 2026" mostra R$ 44,1 bi (era R$ 45,9 bi manual).
+[11] ✅ Nova seção RISCOS FISCAIS (Anexo XII do PLDO 2027)
+       Aba 'riscos_fiscais' no manual XLSX com 17 linhas + agregador em
+       build_data.py. Duas cards:
+         - Visão geral: 3 KPIs (risco total R$ 35,55 bi, concentração 83%
+           em 2 itens, pendente do STF R$ 24,65 bi) + barra empilhada
+           Passivos Contingentes (R$ 10,05 bi) vs Demais Riscos (R$ 25,51 bi)
+         - Top 10 individual: barras horizontais coloridas por dependência
+           (STF / Contratual / Operacional). Tooltip traz descrição longa.
 
-[4] ✅ FCDF via Portal da Transparência:
-       - Token registrado em api.portaldatransparencia.gov.br
-       - Token salvo em .env (gitignored)
-       - LOA não tem endpoint REST — usamos web scraping de
-         /orgaos/25915-fundo-constitucional-do-distrito-federal
-       - KPI mostra R$ 28,4 bi (dotação atualizada 2026)
-       Aviso: o token é invalidado se você pedir mais de uma vez.
+[+] ✅ CLP 2025: tabela completa do Pilar Solidez Fiscal
+       Substituídos os 5 indicadores anteriores pelos 9 da edição 2025:
+       Solvência Fiscal, Taxa de Investimentos, Regra de Ouro, Sucesso do
+       Planejamento Orçamentário, Dependência Fiscal, Resultado Primário,
+       Gasto com Pessoal, Índice de Liquidez, Poupança Corrente.
+       Posição geral do DF: 20º (↓8 vs 2024). Pior indicador: Poupança
+       Corrente (27º). Melhor: Dependência Fiscal (3º).
+       Nova aba 'clp_meta' guarda pos_geral, observação e ano_ranking.
 
-[5] ✅ % benefícios/impostos é calculado automaticamente:
-       beneficios (manual) ÷ receita_impostos_realizada (RREO fechamento).
-       Hoje: 57% (R$ 13,4 bi ÷ R$ 23,4 bi).
+[+] ✅ Manual XLSX limpo (11 → 9 abas, 600KB → 166KB)
+       Apagadas abas obsoletas: caixa (vinha da API), capag_historico
+       (vinha dos CSVs), Planilha2 (lixo). Em 'kpis' os 5 anchors da API
+       perderam valores stale. Em 'capag' sobrou só indicador/obs/conceito.
+       Em 'pessoal' só os limites legais da LRF.
 
-[9] ✅ panorama_fiscal_df.xlsx removido da raiz. Source de edição agora
-       é só manual/panorama_manual.xlsx.
+[+] ✅ Seção Agenda virou "Caminhos para a recuperação fiscal"
+       Substituídos os 3 eixos prioritários por parágrafo de síntese
+       genérico. Texto detalhado migrou para o relatório Word
+       (docs/agenda-politica-fiscal.docx).
 
-[10] ✅ README.md e CLAUDE.md reescritos para a arquitetura nova.
+[+] ✅ FCDF scraping corrigido
+       CloudFront WAF do Portal da Transparência passou a bloquear UAs
+       não-browser (HTTP 405 com captcha). UA Mozilla-like resolveu.
 
-[+] ✅ Manual XLSX flexível:
-       - Aceita valor numérico em reais (auto-formata para "R$ X,Y bi")
-       - Aceita sufixos no chave (ex: "beneficios (R$ 1,00)" → "beneficios")
-       Documentar unidade na própria célula ficou viável.
+[+] ✅ Projeto irmão criado: panorama-fiscal-mt
+       Caminho local: G:\Meu Drive\trabalho\projetos\panorama-fiscal-mt
+       Repo: github.com/couri-consult/panorama-fiscal-mt
+       Live: https://couri-consult.github.io/panorama-fiscal-mt/
+       Espelha o DF (mesma arquitetura, mesmos loaders) mas com paleta
+       da bandeira do MT (azul-bandeira #003399 dominante, amarelo #FFDF00
+       como acento, verde #009C3B no positivo) e sem FCDF/PPPs/Agenda.
+       Setup novo: ~3min e 32 chamadas SICONFI (com cache).
 
 ═══════════════════════════════════════════════════════════════════
 PENDENTES — PRIORIDADE ALTA
@@ -48,13 +70,10 @@ PENDENTES — PRIORIDADE ALTA
 [6] Investimento per capita real
     Já temos população (IBGE: 2.982.818) e investimento liquidado
     (SICONFI: R$ 1,83 bi do RREO 2025/6 fechamento).
-    Hoje o diagnóstico do card só mostra "12º no país" hardcoded.
-    Plano:
-      - Adicionar em data.json._meta.investimento_per_capita = inv / pop
-      - Mostrar valor R$/hab no diagnóstico ou novo sub no card
+    Hoje o card só mostra "12º no país" (não temos mais — virou diagnóstico
+    enxuto pós-reorganização). Adicionar em data.json._meta o valor R$/hab
+    e exibir no card de Investimento Público.
     Esforço: ~15min.
-
-[11] Criar card para riscos fiscais com base no anexo de riscos fiscais do PLDO 2027
 
 ═══════════════════════════════════════════════════════════════════
 PENDENTES — PRIORIDADE MÉDIA
@@ -66,10 +85,9 @@ PENDENTES — PRIORIDADE MÉDIA
       - Loop por todos os UFs (cod_ibge 11..53)
       - Para cada um: RREO Anexo 01 (investimento) + RGF Anexo 01 (RCL)
       - Calcular pct e ranquear
-    São ~54 chamadas SICONFI por update — viável se tolerar throttling.
-    Estratégia: rodar uma vez por ano (dados de fechamento), salvar em
-    arquivo local cache. Build subsequente lê do cache.
-    Esforço: ~45min + tempo de throttling.
+    Esforço: ~45min + tempo de throttling (SICONFI rate-limit).
+    Cache do _http.py ajuda — depois da 1ª execução, runs subsequentes
+    em <10s.
 
 ═══════════════════════════════════════════════════════════════════
 PENDENTES — PRIORIDADE BAIXA
@@ -86,29 +104,46 @@ PENDENTES — PRIORIDADE BAIXA
         volta — usar peter-evans/create-pull-request ou similar
     Esforço: ~30min.
 
-[A] (novo) Refinar mensagem dinâmica do sub "Dotação atualizada 2026"
+[A] Refinar mensagem dinâmica do sub "Dotação atualizada 2026"
     Hoje o card mostra "Dotação atualizada 2026 (RREO 1º bim)" hardcoded
     no build. Deveria atualizar conforme o RREO_CURRENT_BIM avança:
     "Dotação atualizada 2026 (RREO 3º bim, jun/2026)" etc.
     Esforço: ~10min.
 
-[B] (novo) Per capita de outras métricas
+[B] Per capita de outras métricas
     Receita per capita, FCDF per capita, etc. Útil pra comparações
     interestaduais quando o ranking [8] estiver pronto.
+
+[C] (novo) Replicar a seção Riscos Fiscais para o panorama-fiscal-mt
+    Anexo XII existe em qualquer PLDO estadual. Para MT, baixar o PDF
+    do PLDO 2027 do MT, criar aba 'riscos_fiscais' no manual.xlsx do MT,
+    e o resto da arquitetura já reaproveita (mesmo loader, mesmo render).
+    Esforço: ~30min (a maior parte é extrair manualmente do PDF).
+
+[D] (novo) Atualizar build_report.py para incluir as seções novas
+    O Word executivo (docs/agenda-politica-fiscal.docx) é gerado a
+    partir de data.json mas não inclui ainda as seções Benefícios
+    detalhado e Riscos Fiscais. Acrescentar duas seções com tabelas
+    (Top 10 benefícios, Top 10 riscos) e citações de fonte.
+    Esforço: ~45min.
 
 ═══════════════════════════════════════════════════════════════════
 ITENS REVISADOS / ARQUIVADOS
 ═══════════════════════════════════════════════════════════════════
 
-[Beneficiômetro automatizado] DESCARTADO por hora.
-    Beneficiômetro DF (paineis.fazenda.df.gov.br/beneficiometro/) é
-    Qlik Sense — exposições internas são via WebSocket Engine API, que
-    funciona mas requer websocket-client + protocolo JSON-RPC.
-    Como o dashboard só usa 1 valor (total anual) e a fonte atualiza
-    mensalmente, manter como entrada manual no XLSX é mais simples e
-    estável. Se um dia precisarmos de breakdown por imposto, vale
-    revisitar (opções: WebSocket Engine API, Playwright headless,
-    ou pedir CSV pra SEEC-DF).
+[Beneficiômetro automatizado] CONCLUÍDO de outro jeito
+    Em vez de tentar acessar o Qlik Sense do Beneficiômetro via WebSocket
+    Engine API, descobrimos o dataset oficial publicado em
+    dados.df.gov.br/dataset/renuncias-fiscais-beneficiometro com TXT
+    pipe-delimited (~19.6k linhas/ano). Bem mais simples e estável.
+    O loader scripts/loaders/beneficios.py processa esse arquivo.
+
+[Multi-UF dropdown no painel DF] DESCARTADO
+    Tentamos em branch (feature/multi-uf, depois deletado) — adicionava
+    seletor de estado e geração de data.json para 4 UFs. Funcionava mas
+    o DF tem itens muito específicos (FCDF, Beneficiômetro, Anexo 8) que
+    não cabem no painel multi-UF. Optamos por projetos separados:
+    panorama-fiscal-df e panorama-fiscal-mt.
 
 ═══════════════════════════════════════════════════════════════════
 RECEITAS PARA PROBLEMAS CONHECIDOS
@@ -117,10 +152,13 @@ RECEITAS PARA PROBLEMAS CONHECIDOS
 SICONFI rate-limit (HTTP 429 do Oracle ORDS pool):
   - _http.py já faz retry com backoff exponencial (até 6 tentativas)
   - siconfi.py adiciona time.sleep(3) entre chamadas
-  - Se ainda assim cair, esperar 5-10 min e re-rodar
+  - Cache local em .cache/http/ (TTL 6h) — re-runs ficam <10s
+  - Bypass do cache: PFDF_NO_CACHE=1 antes de rodar
+  - Se cair persistente: esperar 5-10 min e re-rodar
 
 SICONFI id_ente do DF:
   - SEMPRE 53 (cod_ibge UF). NÃO usar 5300108 (Brasília município).
+  - Para MT: 51. Para SP: 35. Para PI: 22.
   - Referência: Cod_instituicoes_siconfi.pdf (siconfi.tesouro.gov.br)
 
 MCASP novo vs antigo:
@@ -131,16 +169,25 @@ RGF Anexo 05 — cod_conta correto:
   - "DisponibilidadeDeCaixaLiquidaAposRP" (com AposRP no final)
   - Linha TOTAL: "(IV) = (I+II+III)" em 2023+, "(III) = (I+II)" em 2021-22
 
-Portal da Transparência:
-  - Token: pedir mais de uma vez INVALIDA o anterior — use o último
+Portal da Transparência (FCDF scrape):
+  - CloudFront WAF bloqueia UAs não-browser (HTTP 405 com captcha)
+  - SEMPRE usar UA Mozilla-like para o scrape (transparencia.py já faz)
+  - Para a API REST: tokens são invalidados se pedidos mais de uma vez
   - Selo gov.br Prata ou Ouro obrigatório
-  - LOA/dotação atualizada não tem endpoint REST; usar scrape
+
+% Benefícios / Impostos:
+  - Denominador (receita de impostos) vem do MANUAL (aba kpis linha 8)
+  - SICONFI Anexo 01 NÃO traz intra-orçamentárias — proxy ruim
+  - O dado correto está no RREO Anexo 8, que não tem endpoint
+  - Inserir manualmente quando o RREO de fechamento for atualizado
 
 Manual XLSX:
   - Valor monetário pode ser número em reais (auto-formata) ou string
     "R$ X bi" (preservada)
   - Sufixo entre parênteses no chave é stripado: "beneficios (R$ 1,00)"
     é tratado como "beneficios"
+  - Em 'pessoal', atual_pct e rcl_bi são inseridos pelo build via upsert
+    (não precisam estar na planilha)
 
 CRLF warnings no git add:
   - Normais no Windows. Git armazena LF, checkout para CRLF.
