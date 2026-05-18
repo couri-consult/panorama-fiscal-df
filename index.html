@@ -485,13 +485,7 @@ function renderRiscos(r) {
         +'<div class="kpi-sub">do total em apenas 2 itens (Ressarc. IRRF + Garantia BRB)</div></div>'
     + '<div class="kpi amber"><div class="kpi-label">Pendente do STF</div>'
         +'<div class="kpi-val cv-amber">'+fmtBi(stf.valor)+'</div>'
-        +'<div class="kpi-sub">'+(stf.valor/r.total*100).toFixed(0)+'% do total — decisão binária externa</div></div>'
-    + '<div class="kpi blue"><div class="kpi-label">Passivos contingentes</div>'
-        +'<div class="kpi-val cv-blue">'+fmtBi(pc.valor)+'</div>'
-        +'<div class="kpi-sub">judicial, dívidas e garantias</div></div>'
-    + '<div class="kpi blue"><div class="kpi-label">Demais riscos</div>'
-        +'<div class="kpi-val cv-blue">'+fmtBi(dr.valor)+'</div>'
-        +'<div class="kpi-sub">arrecadação, projeções, outros</div></div>';
+        +'<div class="kpi-sub">'+(stf.valor/r.total*100).toFixed(0)+'% do total — decisão externa</div></div>';
 
   // ── Barra empilhada horizontal (Passivos vs Demais)
   _replace('chartRiscosStack', {
