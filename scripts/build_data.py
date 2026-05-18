@@ -279,9 +279,20 @@ def build():
 
     # KPI beneficios: total vem do manual (Beneficiômetro é Qlik sem API).
     # Aceita valor_bilhoes como número (em reais) ou string já formatada.
-    # O subtítulo "% da receita de impostos" é calculado a partir da
-    # receita_impostos_realizada extraída do RREO de fechamento.
-    receita_impostos = rreo_vals.get("receita_impostos_realizada")
+    #
+    # Denominador do sub "% da receita de impostos":
+    # Preferimos a aba `kpis` linha auxiliar `receita de impostos` (manual —
+    # extraída do RREO Anexo 8, que inclui receitas intra-orçamentárias e NÃO
+    # está disponível no SICONFI/API).
+    # Se a linha manual estiver vazia, caímos no SICONFI (Anexo 01, linha Impostos
+    # da coluna "Até o Bimestre (c)"), que é uma proxy levemente subestimada.
+    receita_impostos_manual = None
+    for row in kpis:
+        if str(row.get("chave", "")).startswith("receita de impostos"):
+            receita_impostos_manual = _coerce_to_reais(row.get("valor_bilhoes"))
+            break
+    receita_impostos = receita_impostos_manual or rreo_vals.get("receita_impostos_realizada")
+
     if receita_impostos:
         for row in kpis:
             if row.get("chave") != "beneficios":
@@ -291,8 +302,14 @@ def build():
                 break
             pct = beneficios_reais / receita_impostos * 100
             row["sub"] = f"{pct:.0f}% da receita de impostos"
-            sources["kpi.beneficios.sub"] = "siconfi-rreo-calc"
+            sources["kpi.beneficios.sub"] = (
+                "manual-rreo-anexo08" if receita_impostos_manual else "siconfi-rreo-calc"
+            )
             break
+
+    # Remove a linha auxiliar `receita de impostos` antes de gerar data.json —
+    # é dado de entrada, não vira KPI card.
+    kpis[:] = [r for r in kpis if not str(r.get("chave", "")).startswith("receita de impostos")]
 
     # Normalize KPI valor_bilhoes coming from the manual XLSX to the dashboard's
     # "R$ X,Y bi" display format:

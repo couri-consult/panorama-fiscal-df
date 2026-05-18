@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "updated_at": "2026-05-18T09:06:49",
+    "updated_at": "2026-05-18T10:10:43",
     "rreo_current_period": "2026/1",
     "rreo_closed_period": "2025/6",
     "rgf_period": "2025/3",
@@ -48,7 +48,7 @@
       "kpi.capag": "csv-local",
       "pessoal.atual_pct": "siconfi-rgf",
       "pessoal.rcl_bi": "siconfi-rgf",
-      "kpi.beneficios.sub": "siconfi-rreo-calc",
+      "kpi.beneficios.sub": "manual-rreo-anexo08",
       "kpi.caixa": "siconfi-rgf-anexo05",
       "caixa": "siconfi-rgf-anexo05"
     }
@@ -87,7 +87,7 @@
     {
       "chave": "beneficios",
       "valor_bilhoes": "R$ 13,4 bi",
-      "sub": "57% da receita de impostos",
+      "sub": "51% da receita de impostos",
       "cor": "amber"
     }
   ],
