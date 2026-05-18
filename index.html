@@ -754,7 +754,10 @@ async function init() {
     renderPPPProj(d.ppps_projecao || []);
     renderBeneficios(d.beneficios_detalhado);
     renderRiscos(d.riscos_fiscais);
-    renderAgenda(d.agenda || []);
+    // Agenda virou texto fixo na seção (parágrafo genérico) — sem render dinâmico.
+    // A função renderAgenda() segue definida e a aba `agenda` do manual ainda é
+    // gerada no data.json; se quiser voltar à versão com 3 eixos, basta restaurar
+    // a chamada e o HTML do agenda-grid.
 
     document.getElementById('loading').style.display='none';
     document.getElementById('main').style.display='block';
