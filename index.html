@@ -178,19 +178,19 @@ footer{text-align:center;font-size:var(--text-label);color:var(--color-text-mute
   </section>
 
   <section class="section" id="beneficios">
-    <div class="section-title">Benefícios Tributários — Detalhamento (2025)</div>
+    <div class="section-title">Benefícios Tributários em 2025</div>
     <div class="card">
       <div class="card-title">Benefícios por tributo</div>
-      <div style="position:relative;height:240px;"><canvas id="chartBenefTributo" role="img" aria-label="Benefícios por tributo"></canvas></div>
+      <div style="position:relative;height:280px;"><canvas id="chartBenefTributo" role="img" aria-label="Benefícios por tributo"></canvas></div>
       <div class="fonte" id="fonte-beneficios">Fonte: Beneficiômetro DF (dados.df.gov.br)</div>
     </div>
     <div class="card">
-      <div class="card-title">10 principais benefícios por valor (+ demais)</div>
-      <div style="position:relative;height:380px;"><canvas id="chartBenefTipo" role="img" aria-label="Top 10 benefícios"></canvas></div>
+      <div class="card-title">10 principais benefícios por valor</div>
+      <div style="position:relative;height:360px;"><canvas id="chartBenefTipo" role="img" aria-label="Top 10 benefícios"></canvas></div>
     </div>
     <div class="card">
-      <div class="card-title">10 maiores beneficiários por valor (+ demais)</div>
-      <div style="position:relative;height:420px;"><canvas id="chartBenefEmpresa" role="img" aria-label="Top 10 beneficiários"></canvas></div>
+      <div class="card-title">10 maiores beneficiários por valor</div>
+      <div style="position:relative;height:360px;"><canvas id="chartBenefEmpresa" role="img" aria-label="Top 10 beneficiários"></canvas></div>
     </div>
   </section>
 
@@ -434,31 +434,34 @@ function renderPPPs(rows) {
   });
 }
 
+var __benefCharts = {};
 function renderBeneficios(b) {
   if (!b) return;
   function fmtMi(v){ return (v >= 1e9 ? 'R$ '+(v/1e9).toFixed(2).replace('.',',')+' bi'
                                        : 'R$ '+(v/1e6).toFixed(0)+' mi'); }
-  function truncate(s, n){ s = String(s||''); return s.length > n ? s.slice(0, n-1)+'…' : s; }
-
+  function fmtAxis(v){ return v >= 1000 ? 'R$ '+(v/1000).toFixed(1)+' bi' : 'R$ '+v+' mi'; }
+  function _replace(id, cfg){
+    if (__benefCharts[id]) { try { __benefCharts[id].destroy(); } catch(e){} }
+    __benefCharts[id] = new Chart(document.getElementById(id), cfg);
+  }
   var palette = [
     cssVar('--g700'), cssVar('--blue'), cssVar('--amber'), cssVar('--red'),
     cssVar('--g500'), cssVar('--g300'), '#8E44AD'
   ];
 
-  // 1) Por tributo (barras horizontais — fica mais legível com 7 categorias)
+  // 1) Por tributo — barras VERTICAIS
   var t = b.por_tributo || [];
-  new Chart(document.getElementById('chartBenefTributo'), {
+  _replace('chartBenefTributo', {
     type:'bar',
     data:{
       labels: t.map(function(x){ return x.nome; }),
       datasets:[{
-        data: t.map(function(x){ return +(x.valor/1e6).toFixed(0); }),  // em milhões
+        data: t.map(function(x){ return +(x.valor/1e6).toFixed(0); }),
         backgroundColor: t.map(function(_, i){ return palette[i % palette.length]; }),
-        borderRadius:3
+        borderRadius:4
       }]
     },
     options:{
-      indexAxis:'y',
       responsive:true, maintainAspectRatio:false,
       plugins:{
         legend:{display:false},
@@ -468,27 +471,28 @@ function renderBeneficios(b) {
         }}}
       },
       scales:{
-        x:{ticks:{callback:function(v){return 'R$ '+(v/1000).toFixed(1)+' bi';}, font:{size:11}},grid:{color:cssVar('--color-border')}},
-        y:{ticks:{font:{size:12,weight:'600'}},grid:{display:false}}
+        x:{ticks:{font:{size:12,weight:'600'}},grid:{display:false}},
+        y:{ticks:{callback:fmtAxis, font:{size:11}},grid:{color:cssVar('--color-border')}}
       }
     }
   });
 
-  // 2) Top 10 benefícios (barras verticais)
+  // 2) Top 10 benefícios — barras HORIZONTAIS, usando nome_curto
   var tb = b.top_beneficios || [];
-  new Chart(document.getElementById('chartBenefTipo'), {
+  _replace('chartBenefTipo', {
     type:'bar',
     data:{
-      labels: tb.map(function(x){ return truncate(x.nome, 30); }),
+      labels: tb.map(function(x){ return x.nome_curto || x.nome; }),
       datasets:[{
         data: tb.map(function(x){ return +(x.valor/1e6).toFixed(0); }),
         backgroundColor: tb.map(function(x){
-          return x.nome.indexOf('Demais') === 0 ? cssVar('--lgray') : cssVar('--g500');
+          return (x.nome || '').indexOf('Demais') === 0 ? cssVar('--lgray') : cssVar('--g500');
         }),
         borderRadius:4
       }]
     },
     options:{
+      indexAxis:'y',
       responsive:true, maintainAspectRatio:false,
       plugins:{
         legend:{display:false},
@@ -501,30 +505,29 @@ function renderBeneficios(b) {
         }}
       },
       scales:{
-        x:{ticks:{font:{size:10},autoSkip:false,maxRotation:90,minRotation:55},grid:{display:false}},
-        y:{ticks:{callback:function(v){return v >= 1000 ? 'R$ '+(v/1000).toFixed(1)+' bi' : 'R$ '+v+' mi';}, font:{size:11}},grid:{color:cssVar('--color-border')}}
+        x:{ticks:{callback:fmtAxis, font:{size:11}},grid:{color:cssVar('--color-border')}},
+        y:{ticks:{font:{size:11.5}},grid:{display:false}}
       }
     }
   });
 
-  // 3) Top 10 beneficiários (barras verticais, com setor entre parênteses)
+  // 3) Top 10 beneficiários — barras HORIZONTAIS, usando nome_curto + setor
   var ty = b.top_beneficiarios || [];
-  new Chart(document.getElementById('chartBenefEmpresa'), {
+  _replace('chartBenefEmpresa', {
     type:'bar',
     data:{
       labels: ty.map(function(x){
-        var nome = truncate(x.nome, 24);
+        var nome = x.nome_curto || x.nome;
         return x.setor_curto ? nome+' ('+x.setor_curto+')' : nome;
       }),
       datasets:[{
         data: ty.map(function(x){ return +(x.valor/1e6).toFixed(0); }),
-        backgroundColor: ty.map(function(x){
-          return x.nome.indexOf('Demais') === 0 ? cssVar('--lgray') : cssVar('--blue');
-        }),
+        backgroundColor: cssVar('--blue'),
         borderRadius:4
       }]
     },
     options:{
+      indexAxis:'y',
       responsive:true, maintainAspectRatio:false,
       plugins:{
         legend:{display:false},
@@ -540,8 +543,8 @@ function renderBeneficios(b) {
         }}
       },
       scales:{
-        x:{ticks:{font:{size:9.5},autoSkip:false,maxRotation:90,minRotation:60},grid:{display:false}},
-        y:{ticks:{callback:function(v){return v >= 1000 ? 'R$ '+(v/1000).toFixed(1)+' bi' : 'R$ '+v+' mi';}, font:{size:11}},grid:{color:cssVar('--color-border')}}
+        x:{ticks:{callback:fmtAxis, font:{size:11}},grid:{color:cssVar('--color-border')}},
+        y:{ticks:{font:{size:11.5}},grid:{display:false}}
       }
     }
   });
