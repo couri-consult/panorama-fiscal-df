@@ -39,11 +39,12 @@ def _load_dotenv(path):
 
 _load_dotenv(os.path.join(ROOT, ".env"))
 
-from loaders import siconfi, ibge, capag, manual, transparencia  # noqa: E402
+from loaders import siconfi, ibge, capag, manual, transparencia, beneficios  # noqa: E402
 import transforms  # noqa: E402
 
 MANUAL_XLSX = os.path.join(ROOT, "manual", "panorama_manual.xlsx")
 CAPAG_DIR = os.path.join(ROOT, "capag")
+BENEFICIOMETRO_DIR = os.path.join(ROOT, "beneficiometro")
 OUTPUT = os.path.join(ROOT, "data.json")
 
 # Reference periods for the current dashboard snapshot.
@@ -311,6 +312,29 @@ def build():
     # é dado de entrada, não vira KPI card.
     kpis[:] = [r for r in kpis if not str(r.get("chave", "")).startswith("receita de impostos")]
 
+    # ---- Beneficiômetro detalhado (dados.df.gov.br) ----
+    # Lê o TXT publicado em beneficiometro/renuncias-{ano}.txt e gera:
+    #   - 3 agregações para a nova seção do painel (tributo / top benefício / top beneficiário)
+    #   - O valor total substitui o KPI beneficios (mais autoritativo que o número do XLSX)
+    beneficiometro_ano = RREO_CLOSED_YEAR  # ex: 2025 (mesmo ano de fechamento do RREO)
+    beneficios_agg = None
+    try:
+        beneficios_agg = beneficios.load_and_aggregate(BENEFICIOMETRO_DIR, beneficiometro_ano)
+        print(f"\n[Beneficiometro] {beneficiometro_ano}: R$ {beneficios_agg['total']/1e9:.3f} bi"
+              f" / {len(beneficios_agg['top_beneficiarios'])-1} top beneficiários + Demais")
+        # Substitui o valor do KPI beneficios pelo total exato do dataset
+        for row in kpis:
+            if row.get("chave") == "beneficios":
+                row["valor_bilhoes"] = fmt_bi(beneficios_agg["total"])
+                # recalcula o sub usando o novo total
+                if receita_impostos:
+                    pct = beneficios_agg["total"] / receita_impostos * 100
+                    row["sub"] = f"{pct:.0f}% da receita de impostos"
+                sources["kpi.beneficios"] = "dados-df-beneficiometro"
+                break
+    except FileNotFoundError as e:
+        print(f"\n[Beneficiometro] arquivo não encontrado: {e} — KPI usa fallback do manual")
+
     # Normalize KPI valor_bilhoes coming from the manual XLSX to the dashboard's
     # "R$ X,Y bi" display format:
     #   - numbers (int/float in reais) → fmt_bi
@@ -401,6 +425,7 @@ def build():
         "ppps": sheets.get("ppps", []),
         "ppps_projecao": sheets.get("ppps_projecao", []),
         "agenda": sheets.get("agenda", []),
+        "beneficios_detalhado": beneficios_agg,  # None se o arquivo não existir
     }
 
     with open(OUTPUT, "w", encoding="utf-8") as f:

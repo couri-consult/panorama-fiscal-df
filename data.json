@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "updated_at": "2026-05-18T10:10:43",
+    "updated_at": "2026-05-18T10:27:10",
     "rreo_current_period": "2026/1",
     "rreo_closed_period": "2025/6",
     "rgf_period": "2025/3",
@@ -49,6 +49,7 @@
       "pessoal.atual_pct": "siconfi-rgf",
       "pessoal.rcl_bi": "siconfi-rgf",
       "kpi.beneficios.sub": "manual-rreo-anexo08",
+      "kpi.beneficios": "dados-df-beneficiometro",
       "kpi.caixa": "siconfi-rgf-anexo05",
       "caixa": "siconfi-rgf-anexo05"
     }
@@ -616,5 +617,170 @@
       "titulo": "Poupança corrente e governança",
       "item": "Internalizar FCDF no orçamento do DF"
     }
-  ]
+  ],
+  "beneficios_detalhado": {
+    "total": 13447360968.77573,
+    "por_tributo": [
+      {
+        "nome": "ICMS",
+        "valor": 11732142725.00001,
+        "pct": 87.2449453260131
+      },
+      {
+        "nome": "IPVA",
+        "valor": 638849374.7410676,
+        "pct": 4.750741623017721
+      },
+      {
+        "nome": "ISS",
+        "valor": 362600764.6797002,
+        "pct": 2.6964455369469564
+      },
+      {
+        "nome": "ITBI",
+        "valor": 351399858.5449989,
+        "pct": 2.6131510811744865
+      },
+      {
+        "nome": "IPTU",
+        "valor": 350957486.0399599,
+        "pct": 2.609861420801227
+      },
+      {
+        "nome": "TLP",
+        "valor": 6885104.209999147,
+        "pct": 0.05120041193202222
+      },
+      {
+        "nome": "ITCD",
+        "valor": 4525655.56,
+        "pct": 0.03365460011453848
+      }
+    ],
+    "top_beneficios": [
+      {
+        "nome": "BENEFÍCIO ICMS",
+        "valor": 11732142725.00001,
+        "pct": 87.2449453260131
+      },
+      {
+        "nome": "TERRACAP - ATO DECLARATORIO 25/2024 SEEC",
+        "valor": 276331032.66995996,
+        "pct": 2.054909013832456
+      },
+      {
+        "nome": "VEÍCULOS USADOS COM MAIS DE 15 ANOS DE USO",
+        "valor": 264536064.72106642,
+        "pct": 1.9671968748017492
+      },
+      {
+        "nome": "TRANSMISSÃO DE IMÓVEL - Demais casos",
+        "valor": 225684405.20500013,
+        "pct": 1.6782802642766184
+      },
+      {
+        "nome": "IPVA-MOTORES ELETRICOS/HIBRIDOS",
+        "valor": 219009247.84000027,
+        "pct": 1.6286411017636215
+      },
+      {
+        "nome": "Redução da BC em 60% em serviços de agenciamento, de corretagem ou intermediação de seguros (Lei nº 3.736)",
+        "valor": 187384016.71110007,
+        "pct": 1.3934631274210514
+      },
+      {
+        "nome": "Isenção de transporte coletivo de passageiros (artigo 3º, inciso IV do decreto 25.508/2005)",
+        "valor": 139897684.404,
+        "pct": 1.040335607327246
+      },
+      {
+        "nome": "PRIMEIRA TRANSMISSÃO DE IMÓVEL NOVO EDIFICADO",
+        "valor": 100661316.40000002,
+        "pct": 0.7485581493181587
+      },
+      {
+        "nome": "ISENÇÃO DE VEÍCULOS NOVOS, NO ANO DA AQUISIÇÃO",
+        "valor": 97422683.05000196,
+        "pct": 0.72447436546259
+      },
+      {
+        "nome": "Redução da BC em 60% em serviços de intermediacao e corretagem prestados por call centers (artigo 27-A, incisos II e V do decreto 25.508/2005)",
+        "valor": 35312055.83459999,
+        "pct": 0.2625946898918923
+      },
+      {
+        "nome": "Demais (42)",
+        "valor": 168979736.93999827,
+        "pct": 1.256601479891578
+      }
+    ],
+    "top_beneficiarios": [
+      {
+        "nome": "VIVA COMERCIO E IMPORTACAO LTDA EPP",
+        "setor_curto": "Saúde",
+        "valor": 942099566.58,
+        "pct": 7.005832361959495
+      },
+      {
+        "nome": "Pessoa Física",
+        "setor_curto": "Pessoa física",
+        "valor": 836915088.506871,
+        "pct": 6.223638158075452
+      },
+      {
+        "nome": "VERTICAL DF SOLUCOES PARA SAUDE LTDA",
+        "setor_curto": "Saúde",
+        "valor": 798978906.73,
+        "pct": 5.941529409266243
+      },
+      {
+        "nome": "ONCO PROD DISTRIBUIDORA DE PRODUTOS HOSPITALARES E ONCOLOGICOS LTDA.",
+        "setor_curto": "Saúde",
+        "valor": 640094593.61,
+        "pct": 4.760001572771607
+      },
+      {
+        "nome": "CENTRO OESTE COMERCIAL DE ALIMENTOS LTDA",
+        "setor_curto": "Abastecimento",
+        "valor": 551461557.85,
+        "pct": 4.1008905697591755
+      },
+      {
+        "nome": "CM HOSPITALAR S.A.",
+        "setor_curto": "Saúde",
+        "valor": 497535279.33000004,
+        "pct": 3.6998730121490633
+      },
+      {
+        "nome": "S.A. ATACADISTA DE ALIMENTOS LTDA",
+        "setor_curto": "Abastecimento",
+        "valor": 401955808.39500004,
+        "pct": 2.989105515411733
+      },
+      {
+        "nome": "SANTA THEREZINHA ATACADISTA DE PRODUTOS ALIMENTICIOS LTDA",
+        "setor_curto": "Abastecimento",
+        "valor": 342351139.47,
+        "pct": 2.545861156437509
+      },
+      {
+        "nome": "COMPANHIA IMOBILIARIA DE BRASILIA - TERRACAP",
+        "setor_curto": "Imobiliário",
+        "valor": 278507080.86996,
+        "pct": 2.0710909859313142
+      },
+      {
+        "nome": "FBZ COMERCIO DE CARNES EIRELI",
+        "setor_curto": "Abastecimento",
+        "valor": 267037738.9,
+        "pct": 1.9858003330173977
+      },
+      {
+        "nome": "Demais (16986)",
+        "setor_curto": "",
+        "valor": 7890424208.533899,
+        "pct": 58.67637692522101
+      }
+    ]
+  }
 }

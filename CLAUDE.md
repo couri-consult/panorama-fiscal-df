@@ -84,8 +84,9 @@ Mirrors the previous Excel sheet names for backward compatibility with the rende
 | KPI investimento_rcl (sub) | Aba `investimentos` do manual — posição do DF | "20º lugar no Brasil" derivado do ranking manual |
 | KPI capag (nota) | CAPAG CSVs locais | Atualização anual quando STN publica |
 | KPI caixa + tabela `caixa` (5 anos) | SICONFI RGF Anexo 05 (3º quad de cada ano) | `cod_conta=DisponibilidadeDeCaixaLiquidaAposRP` + conta TOTAL (IV) ou (III) |
-| KPI beneficios (valor) | Aba `kpis` do manual (linha `beneficios`) | Beneficiômetro DF é Qlik Sense, sem API — entrada manual em reais |
-| KPI beneficios (sub) | calc: beneficios / receita_impostos_realizada × 100 | receita_impostos vem do RREO 2025/6 |
+| KPI beneficios (valor) | Dataset `beneficiometro/renuncias-{ano}.txt` (dados.df.gov.br) | Total agregado do TXT publicado pela SEEC; fallback p/ manual XLSX se ausente |
+| KPI beneficios (sub) | calc: beneficios / receita_impostos × 100 | receita_impostos vem da aba `kpis` linha 8 (manual, RREO Anexo 8 — não disponível no SICONFI) |
+| Seção `beneficios_detalhado` (3 gráficos) | Dataset `beneficiometro/renuncias-{ano}.txt` | Agregações: por tributo, top 10 benefícios, top 10 beneficiários com setor inferido |
 | `investimentos` (ranking 27 UFs) | manual | Ainda não automatizado (requer 54 chamadas SICONFI) |
 | `pessoal.atual_pct`, `rcl_bi` | SICONFI RGF Anexo 01 (DTP) | linha `ReceitaCorrenteLiquidaLimiteLegal` + `DespesaComPessoalTotal`. Inseridos via upsert no array de pessoal. |
 | `pessoal.alerta_pct/prudencial_pct/maximo_pct` | Manual (limites legais da LRF) | Aba `pessoal` |

@@ -106,6 +106,10 @@ Cada aba do `manual/panorama_manual.xlsx` contém **só o que o painel realmente
 
 Para **CAPAG anual**: baixar o CSV do Tesouro Transparente e salvar em `capag/capagdosestados{ano}.csv` (não vai no manual.xlsx).
 
+Para **Beneficiômetro detalhado** (3 gráficos da seção Benefícios): baixar o TXT publicado pela SEEC-DF em
+`https://www.dados.df.gov.br/dataset/renuncias-fiscais-beneficiometro` e salvar em
+`beneficiometro/renuncias-{ano}.txt`. O loader detecta setor automaticamente a partir do CNAE.
+
 Após editar, rode `update.bat` (ou `python scripts/build_data.py && git add ... && git commit && git push`).
 
 ---
