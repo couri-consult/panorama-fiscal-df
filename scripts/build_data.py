@@ -75,6 +75,51 @@ def safely(label, fn, fallback):
     return result, True
 
 
+def _build_riscos_fiscais(rows, top_n=10):
+    """Agrega a aba 'riscos_fiscais' (Anexo XII da LDO) em totais + top N.
+
+    Retorna dict com:
+      total           : soma geral (R$)
+      por_bloco       : [{bloco, valor}] (Passivos Contingentes / Demais Riscos Fiscais)
+      por_dependencia : [{tipo, valor}]  (STF, Câmbio, Operacional, Contratual, etc.)
+      top_n           : [{nome_curto, descricao, valor, pct, dependencia, bloco}] ordem desc
+      conc_top2_pct   : % representado pelos 2 maiores itens (mostra concentração)
+    """
+    if not rows:
+        return None
+    total = sum(float(r.get("valor") or 0) for r in rows) or 1.0
+
+    from collections import defaultdict as _d
+    bloco_d = _d(float); dep_d = _d(float)
+    for r in rows:
+        v = float(r.get("valor") or 0)
+        bloco_d[str(r.get("bloco") or "").strip()] += v
+        dep_d[str(r.get("dependencia") or "").strip()] += v
+
+    por_bloco = [{"bloco": k, "valor": v} for k, v in sorted(bloco_d.items(), key=lambda x: -x[1])]
+    por_dep = [{"tipo": k, "valor": v} for k, v in sorted(dep_d.items(), key=lambda x: -x[1])]
+
+    sorted_rows = sorted(rows, key=lambda r: -float(r.get("valor") or 0))
+    top = sorted_rows[:top_n]
+    top_out = [{
+        "nome_curto": str(r.get("nome_curto") or "").strip(),
+        "descricao": str(r.get("descricao") or "").strip(),
+        "valor": float(r.get("valor") or 0),
+        "pct": float(r.get("valor") or 0) / total * 100,
+        "dependencia": str(r.get("dependencia") or "").strip(),
+        "bloco": str(r.get("bloco") or "").strip(),
+    } for r in top]
+
+    conc_top2 = sum(r["valor"] for r in top_out[:2]) / total * 100 if len(top_out) >= 2 else 0
+    return {
+        "total": total,
+        "por_bloco": por_bloco,
+        "por_dependencia": por_dep,
+        "top_n": top_out,
+        "conc_top2_pct": conc_top2,
+    }
+
+
 def load_all_manual_sheets():
     """Read every sheet from manual.xlsx, normalizing the `chave` column.
 
@@ -426,6 +471,7 @@ def build():
         "ppps_projecao": sheets.get("ppps_projecao", []),
         "agenda": sheets.get("agenda", []),
         "beneficios_detalhado": beneficios_agg,  # None se o arquivo não existir
+        "riscos_fiscais": _build_riscos_fiscais(sheets.get("riscos_fiscais", [])),
     }
 
     with open(OUTPUT, "w", encoding="utf-8") as f:

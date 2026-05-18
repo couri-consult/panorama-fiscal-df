@@ -103,6 +103,7 @@ Cada aba do `manual/panorama_manual.xlsx` contém **só o que o painel realmente
 | `ppps` | `nome`, `status` | Quando houver novo contrato ou mudança de status |
 | `ppps_projecao` | `ano`, `despesas_ppp`, `rcl`, `pct` | Quando o RREO Anexo 13 trouxer projeção atualizada |
 | `agenda` | `eixo`, `cor`, `titulo`, `item` | Quando a agenda propositiva for revisada |
+| `riscos_fiscais` | `bloco`, `categoria`, `descricao`, `nome_curto`, `valor`, `dependencia` | Anualmente quando sair a nova LDO (Anexo XII) |
 
 Para **CAPAG anual**: baixar o CSV do Tesouro Transparente e salvar em `capag/capagdosestados{ano}.csv` (não vai no manual.xlsx).
 

@@ -107,6 +107,7 @@ footer{text-align:center;font-size:var(--text-label);color:var(--color-text-mute
   <a href="#capag">CAPAG e Caixa</a>
   <a href="#pessoal">Pessoal / LRF</a>
   <a href="#beneficios">Benefícios</a>
+  <a href="#riscos">Riscos Fiscais</a>
   <a href="#ppps">PPPs</a>
   <a href="#agenda">Agenda</a>
 </nav>
@@ -191,6 +192,25 @@ footer{text-align:center;font-size:var(--text-label);color:var(--color-text-mute
     <div class="card">
       <div class="card-title">10 maiores beneficiários por valor</div>
       <div style="position:relative;height:360px;"><canvas id="chartBenefEmpresa" role="img" aria-label="Top 10 beneficiários"></canvas></div>
+    </div>
+  </section>
+
+  <section class="section" id="riscos">
+    <div class="section-title">Riscos Fiscais — Anexo XII da LDO 2027</div>
+    <div class="card">
+      <div class="card-title">Visão geral</div>
+      <div id="riscos-kpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:14px;"></div>
+      <div style="position:relative;height:60px;"><canvas id="chartRiscosStack" role="img" aria-label="Composição dos riscos por bloco"></canvas></div>
+      <div class="fonte">Fonte: Anexo XII da LDO 2027 — Demonstrativo de Riscos Fiscais e Providências (SEEC-DF). Valores em R$.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">10 principais riscos individuais</div>
+      <div style="font-size:11.5px;color:var(--muted);margin-bottom:8px;">
+        <span style="display:inline-block;width:10px;height:10px;background:var(--red);border-radius:2px;margin-right:4px;vertical-align:middle;"></span>Aguarda decisão do STF
+        &nbsp;&nbsp;<span style="display:inline-block;width:10px;height:10px;background:var(--amber);border-radius:2px;margin-right:4px;vertical-align:middle;"></span>Acionada se executada / Contratual
+        &nbsp;&nbsp;<span style="display:inline-block;width:10px;height:10px;background:var(--g500);border-radius:2px;margin-right:4px;vertical-align:middle;"></span>Operacional / Câmbio / Macro
+      </div>
+      <div style="position:relative;height:380px;"><canvas id="chartRiscosTop" role="img" aria-label="Top 10 riscos fiscais"></canvas></div>
     </div>
   </section>
 
@@ -434,6 +454,119 @@ function renderPPPs(rows) {
   });
 }
 
+var __riscosCharts = {};
+function renderRiscos(r) {
+  if (!r) return;
+  function fmtBi(v){ return 'R$ '+(v/1e9).toFixed(2).replace('.',',')+' bi'; }
+  function fmtMi(v){ return v >= 1e9 ? 'R$ '+(v/1e9).toFixed(2).replace('.',',')+' bi'
+                                     : 'R$ '+(v/1e6).toFixed(0)+' mi'; }
+  function fmtAxis(v){ return v >= 1000 ? 'R$ '+(v/1000).toFixed(1)+' bi' : 'R$ '+v+' mi'; }
+  function _replace(id, cfg){
+    if (__riscosCharts[id]) { try { __riscosCharts[id].destroy(); } catch(e){} }
+    __riscosCharts[id] = new Chart(document.getElementById(id), cfg);
+  }
+  function depColor(d){
+    if (d === 'STF') return cssVar('--red');
+    if (d === 'Acionada se executada' || d === 'Contratual') return cssVar('--amber');
+    return cssVar('--g500');
+  }
+
+  // ── KPIs de visão geral
+  var kpisDiv = document.getElementById('riscos-kpis');
+  var pc = (r.por_bloco || []).find(function(x){return x.bloco === 'Passivos Contingentes';}) || {valor:0};
+  var dr = (r.por_bloco || []).find(function(x){return x.bloco === 'Demais Riscos Fiscais';}) || {valor:0};
+  var stf = (r.por_dependencia || []).find(function(x){return x.tipo === 'STF';}) || {valor:0};
+  kpisDiv.innerHTML =
+      '<div class="kpi red"><div class="kpi-label">Risco total</div>'
+        +'<div class="kpi-val cv-red">'+fmtBi(r.total)+'</div>'
+        +'<div class="kpi-sub">soma de passivos contingentes + demais riscos</div></div>'
+    + '<div class="kpi red"><div class="kpi-label">Concentração</div>'
+        +'<div class="kpi-val cv-red">'+r.conc_top2_pct.toFixed(0)+'%</div>'
+        +'<div class="kpi-sub">do total em apenas 2 itens (Ressarc. IRRF + Garantia BRB)</div></div>'
+    + '<div class="kpi amber"><div class="kpi-label">Pendente do STF</div>'
+        +'<div class="kpi-val cv-amber">'+fmtBi(stf.valor)+'</div>'
+        +'<div class="kpi-sub">'+(stf.valor/r.total*100).toFixed(0)+'% do total — decisão binária externa</div></div>'
+    + '<div class="kpi blue"><div class="kpi-label">Passivos contingentes</div>'
+        +'<div class="kpi-val cv-blue">'+fmtBi(pc.valor)+'</div>'
+        +'<div class="kpi-sub">judicial, dívidas e garantias</div></div>'
+    + '<div class="kpi blue"><div class="kpi-label">Demais riscos</div>'
+        +'<div class="kpi-val cv-blue">'+fmtBi(dr.valor)+'</div>'
+        +'<div class="kpi-sub">arrecadação, projeções, outros</div></div>';
+
+  // ── Barra empilhada horizontal (Passivos vs Demais)
+  _replace('chartRiscosStack', {
+    type:'bar',
+    data:{
+      labels:[''],
+      datasets:[
+        {label:'Passivos Contingentes', data:[+(pc.valor/1e9).toFixed(2)], backgroundColor:cssVar('--blue'), borderRadius:3},
+        {label:'Demais Riscos Fiscais', data:[+(dr.valor/1e9).toFixed(2)], backgroundColor:cssVar('--red'), borderRadius:3},
+      ]
+    },
+    options:{
+      indexAxis:'y',
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{position:'bottom', labels:{font:{size:11}, boxWidth:12}},
+        tooltip:{callbacks:{label:function(c){
+          var v = c.parsed.x * 1e9;
+          return c.dataset.label+': '+fmtBi(v)+' ('+(v/r.total*100).toFixed(0)+'%)';
+        }}}
+      },
+      scales:{
+        x:{stacked:true, ticks:{callback:function(v){return 'R$ '+v.toFixed(0)+' bi';}, font:{size:10}}, grid:{display:false}},
+        y:{stacked:true, display:false}
+      }
+    }
+  });
+
+  // ── Top 10 individual, barras horizontais coloridas por dependência
+  var top = r.top_n || [];
+  _replace('chartRiscosTop', {
+    type:'bar',
+    data:{
+      labels: top.map(function(x){ return x.nome_curto; }),
+      datasets:[{
+        data: top.map(function(x){ return +(x.valor/1e6).toFixed(0); }),
+        backgroundColor: top.map(function(x){ return depColor(x.dependencia); }),
+        borderRadius:4
+      }]
+    },
+    options:{
+      indexAxis:'y',
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{
+          title:function(items){
+            var row = top[items[0].dataIndex];
+            return row.nome_curto + ' — ' + row.dependencia;
+          },
+          label:function(c){
+            var row = top[c.dataIndex];
+            return fmtMi(row.valor)+' ('+row.pct.toFixed(1)+'% do total)';
+          },
+          afterLabel:function(c){
+            var d = top[c.dataIndex].descricao;
+            // quebra em linhas de ~70 chars pra ficar legível
+            var out = []; var line = '';
+            d.split(' ').forEach(function(w){
+              if ((line+' '+w).length > 70) { out.push(line.trim()); line = w; }
+              else line += ' '+w;
+            });
+            if (line.trim()) out.push(line.trim());
+            return out;
+          }
+        }}
+      },
+      scales:{
+        x:{ticks:{callback:fmtAxis, font:{size:11}}, grid:{color:cssVar('--border')}},
+        y:{ticks:{font:{size:11.5}}, grid:{display:false}}
+      }
+    }
+  });
+}
+
 var __benefCharts = {};
 function renderBeneficios(b) {
   if (!b) return;
@@ -626,6 +759,7 @@ async function init() {
     renderPPPs(d.ppps || []);
     renderPPPProj(d.ppps_projecao || []);
     renderBeneficios(d.beneficios_detalhado);
+    renderRiscos(d.riscos_fiscais);
     renderAgenda(d.agenda || []);
 
     document.getElementById('loading').style.display='none';

@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "updated_at": "2026-05-18T10:50:11",
+    "updated_at": "2026-05-18T13:53:22",
     "rreo_current_period": "2026/1",
     "rreo_closed_period": "2025/6",
     "rgf_period": "2025/3",
@@ -41,6 +41,7 @@
       "clp_meta": "manual",
       "capag": "csv-local+manual(obs)",
       "pessoal": "manual",
+      "riscos_fiscais": "manual",
       "capag_historico": "csv-local",
       "kpi.fcdf": "portal-transparencia-scrape",
       "kpi.orcamento_df": "siconfi-rreo-atual",
@@ -797,5 +798,131 @@
         "pct": 1.9858003330173977
       }
     ]
+  },
+  "riscos_fiscais": {
+    "total": 35551263185.0,
+    "por_bloco": [
+      {
+        "bloco": "Demais Riscos Fiscais",
+        "valor": 25505511625.0
+      },
+      {
+        "bloco": "Passivos Contingentes",
+        "valor": 10045751560.0
+      }
+    ],
+    "por_dependencia": [
+      {
+        "tipo": "STF",
+        "valor": 24649650159.0
+      },
+      {
+        "tipo": "Acionada se executada",
+        "valor": 6600000000.0
+      },
+      {
+        "tipo": "Operacional",
+        "valor": 2597161973.0
+      },
+      {
+        "tipo": "Contratual",
+        "valor": 776274652.0
+      },
+      {
+        "tipo": "Câmbio",
+        "valor": 768343416.0
+      },
+      {
+        "tipo": "Cenário macro",
+        "valor": 87518050.0
+      },
+      {
+        "tipo": "Administrativa",
+        "valor": 72314935.0
+      }
+    ],
+    "top_n": [
+      {
+        "nome_curto": "Ressarcimento IRRF FCDF (TN)",
+        "descricao": "Ressarcimento ao Tesouro Nacional do IRRF sobre remunerações de Bombeiros e Polícias pagas com FCDF (2003-2025)",
+        "valor": 22814757046.0,
+        "pct": 64.17425149502462,
+        "dependencia": "STF",
+        "bloco": "Demais Riscos Fiscais"
+      },
+      {
+        "nome_curto": "Garantia ao BRB",
+        "descricao": "Garantia concedida pelo GDF ao BRB (Lei 7.845/2026), na condição de acionista controlador, para recomposição/fortalecimento do BRB",
+        "valor": 6600000000.0,
+        "pct": 18.564741189800284,
+        "dependencia": "Acionada se executada",
+        "bloco": "Passivos Contingentes"
+      },
+      {
+        "nome_curto": "IRRF FCDF — suspensão 2026",
+        "descricao": "Suspensão dos repasses do IRRF sobre remunerações pagas com recursos do FCDF (2026)",
+        "valor": 1484586391.0,
+        "pct": 4.175903351941614,
+        "dependencia": "STF",
+        "bloco": "Demais Riscos Fiscais"
+      },
+      {
+        "nome_curto": "PGDF — Pessoal",
+        "descricao": "Demandas Judiciais PGDF — Pessoal Estatutário (reajustes, gratificações, aposentadoria especial, diárias, pecúnia, auxílio-alimentação, demais)",
+        "valor": 818955722.0,
+        "pct": 2.3035910643690958,
+        "dependencia": "Operacional",
+        "bloco": "Passivos Contingentes"
+      },
+      {
+        "nome_curto": "NOVACAP",
+        "descricao": "Demandas judiciais NOVACAP (cíveis e trabalhistas — perdas provável e possível)",
+        "valor": 786090131.0,
+        "pct": 2.2111454293744246,
+        "dependencia": "Operacional",
+        "bloco": "Passivos Contingentes"
+      },
+      {
+        "nome_curto": "CAESB — Contrato BID",
+        "descricao": "Garantia concedida à CAESB referente Contrato BID 3168/OC-BR",
+        "valor": 776274652.0,
+        "pct": 2.183536061603376,
+        "dependencia": "Contratual",
+        "bloco": "Passivos Contingentes"
+      },
+      {
+        "nome_curto": "Câmbio (op. crédito)",
+        "descricao": "Risco cambial em operações de crédito (~20% da dívida contratual em USD)",
+        "valor": 768343416.0,
+        "pct": 2.16122676711016,
+        "dependencia": "Câmbio",
+        "bloco": "Demais Riscos Fiscais"
+      },
+      {
+        "nome_curto": "METRÔ/DF",
+        "descricao": "Demandas judiciais - METRÔ/DF",
+        "valor": 470727951.0,
+        "pct": 1.3240822092606046,
+        "dependencia": "Operacional",
+        "bloco": "Passivos Contingentes"
+      },
+      {
+        "nome_curto": "ICMS TUST/TUSD",
+        "descricao": "Suspensão dos repasses do ICMS sobre TUST e TUSD (transmissão e distribuição de energia)",
+        "valor": 350306722.0,
+        "pct": 0.985356610754139,
+        "dependencia": "STF",
+        "bloco": "Demais Riscos Fiscais"
+      },
+      {
+        "nome_curto": "IPREV",
+        "descricao": "Demandas Judiciais IPREV (concessão, jornada, gratificações, doença grave, demais, contribuições previdenciárias)",
+        "valor": 256931586.0,
+        "pct": 0.7227073329658962,
+        "dependencia": "Operacional",
+        "bloco": "Passivos Contingentes"
+      }
+    ],
+    "conc_top2_pct": 82.73899268482491
   }
 }

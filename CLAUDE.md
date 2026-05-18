@@ -87,6 +87,7 @@ Mirrors the previous Excel sheet names for backward compatibility with the rende
 | KPI beneficios (valor) | Dataset `beneficiometro/renuncias-{ano}.txt` (dados.df.gov.br) | Total agregado do TXT publicado pela SEEC; fallback p/ manual XLSX se ausente |
 | KPI beneficios (sub) | calc: beneficios / receita_impostos × 100 | receita_impostos vem da aba `kpis` linha 8 (manual, RREO Anexo 8 — não disponível no SICONFI) |
 | Seção `beneficios_detalhado` (3 gráficos) | Dataset `beneficiometro/renuncias-{ano}.txt` | Agregações: por tributo, top 10 benefícios, top 10 beneficiários com setor inferido |
+| Seção `riscos_fiscais` (2 cards) | Aba `riscos_fiscais` do manual XLSX | Anexo XII da LDO (atualização anual). Agregados: total, por bloco, por dependência (STF/Contratual/Operacional/Cambial/Macro), top 10 individual. |
 | `investimentos` (ranking 27 UFs) | manual | Ainda não automatizado (requer 54 chamadas SICONFI) |
 | `pessoal.atual_pct`, `rcl_bi` | SICONFI RGF Anexo 01 (DTP) | linha `ReceitaCorrenteLiquidaLimiteLegal` + `DespesaComPessoalTotal`. Inseridos via upsert no array de pessoal. |
 | `pessoal.alerta_pct/prudencial_pct/maximo_pct` | Manual (limites legais da LRF) | Aba `pessoal` |
@@ -113,6 +114,7 @@ Após a limpeza de 18/05/2026, o manual contém **só o que o painel realmente l
 | `ppps` | `nome`, `status` | Lista de PPPs (contratadas / a contratar / suspenso) |
 | `ppps_projecao` | `ano`, `despesas_ppp`, `rcl`, `pct` | Projeção plurianual |
 | `agenda` | `eixo`, `cor`, `titulo`, `item` | 3 eixos da Agenda de Recuperação Fiscal |
+| `riscos_fiscais` | `bloco`, `categoria`, `descricao`, `nome_curto`, `valor`, `dependencia` | Anexo XII da LDO (~17 linhas). Atualização anual. |
 
 Sumiram (não eram usadas): `caixa` (vem da API), `capag_historico` (gerado dos CSVs), `Planilha2` (lixo).
 
