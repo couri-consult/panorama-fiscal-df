@@ -11,14 +11,18 @@ Dashboard estático que apresenta indicadores fiscais do Distrito Federal. Os da
 
 ```
 panorama-fiscal-df/
-├── index.html               # Dashboard (HTML + CSS + JS inline). Carrega data.json.
+├── index.html               # Dashboard principal (HTML + CSS + JS inline). Carrega data.json.
 ├── data.json                # Gerado pelo build. Versionado no git.
+├── dashboard_alugueis_gdf.html  # Painel auxiliar de locações de imóveis. Carrega alugueis.json.
+├── alugueis.json            # Gerado por build_alugueis.py. Versionado no git.
 ├── styles/tokens.css        # Variáveis CSS (cores, sombras, raios).
 ├── manual/
-│   └── panorama_manual.xlsx # Só dados editáveis manualmente (sem fallback redundante).
+│   ├── panorama_manual.xlsx # Só dados editáveis manualmente (sem fallback redundante).
+│   └── planilha-de-locacao-de-imoveis-...csv  # Fonte do painel de locações.
 ├── capag/                   # CSVs anuais da CAPAG (download manual do Tesouro).
 ├── scripts/
 │   ├── build_data.py        # Orquestrador: lê .env, chama loaders, gera data.json.
+│   ├── build_alugueis.py    # Gera alugueis.json a partir do CSV de locações em manual/.
 │   ├── transforms.py        # Helpers de formatação.
 │   └── loaders/
 │       ├── _http.py         # Cliente HTTP com retry/backoff.
@@ -151,6 +155,36 @@ O `data.json` tem uma seção `_meta.sources` que mostra de onde cada KPI/seçã
 ```
 
 Útil pra debugar: se um KPI vier errado, olha a fonte e investiga lá.
+
+---
+
+## Painel de locações de imóveis (auxiliar)
+
+`dashboard_alugueis_gdf.html` é um painel **independente** do dashboard principal — analisa os
+contratos de locação de imóveis do Executivo do DF (2º e 3º trimestres de 2025).
+
+- **Fonte:** `manual/planilha-de-locacao-de-imoveis-2-e-32025-para-processo-em-cumprimento-a-lei-distrital.csv`
+  — CSV `;`-delimitado, encoding latin-1, publicado pela transparência distrital.
+- **Build:** `python scripts/build_alugueis.py` lê o CSV, trata os dados e gera `alugueis.json` na raiz.
+- **Runtime:** o HTML faz `fetch('alugueis.json')` — precisa ser servido via HTTP (GitHub Pages
+  serve em `/dashboard_alugueis_gdf.html`; localmente use `python -m http.server`).
+
+O `build_alugueis.py` concentra a curadoria: encurta nomes de órgãos por regra (`Secretaria de
+Estado de X` → `SE X` etc.) e agrupa variantes da mesma família empresarial por palavra-chave
+(Paulo Octávio, Sarkis, Phenícia, Estrutural, Serra Bonita). KPIs e estatísticas são calculados
+no navegador a partir do JSON.
+
+### Atualizar o painel de locações
+
+```bash
+# 1. Substituir o CSV em manual/ pela planilha nova (mesmo nome de arquivo)
+# 2. Regenerar o JSON
+python scripts/build_alugueis.py
+# 3. Publicar
+git add alugueis.json
+git commit -m "Atualiza dados de locações"
+git push
+```
 
 ---
 
