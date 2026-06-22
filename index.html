@@ -115,6 +115,7 @@ footer{text-align:center;font-size:var(--text-label);color:var(--color-text-mute
   <a href="#investimento">Investimento</a>
   <a href="#capag">CAPAG e Caixa</a>
   <a href="#endividamento">Endividamento</a>
+  <a href="#art167a">Art. 167-A</a>
   <a href="#pessoal">Pessoal / LRF</a>
   <a href="#beneficios">Benefícios</a>
   <a href="#riscos">Riscos Fiscais</a>
@@ -187,6 +188,23 @@ footer{text-align:center;font-size:var(--text-label);color:var(--color-text-mute
         <div class="card-title">Leitura — estoque × fluxo e o caso BRB</div>
         <ul class="dl" id="endiv-diag"></ul>
         <div id="endiv-brb" style="margin-top:12px;padding:12px;border-radius:var(--radius-input);background:var(--color-warning-bg,#fdf6e3);border:1px solid var(--color-warning);font-size:12.5px;line-height:1.6;color:var(--text);"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="art167a">
+    <div class="section-title">Regra do art. 167-A — o gatilho do ajuste de 2026</div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">Despesa corrente ÷ Receita corrente — <span id="a167-periodo"></span></div>
+        <div id="a167-gauge"></div>
+        <div id="a167-kpis" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px;"></div>
+        <div class="fonte" id="a167-fonte">Fonte: Siconfi/Tesouro — RREO Anexo 01</div>
+      </div>
+      <div class="card">
+        <div class="card-title">O que esse gatilho aciona</div>
+        <ul class="dl" id="a167-diag"></ul>
+        <div id="a167-box" style="margin-top:12px;padding:12px;border-radius:var(--radius-input);background:var(--color-warning-bg,#fdf6e3);border:1px solid var(--color-warning);font-size:12.5px;line-height:1.6;color:var(--text);"></div>
       </div>
     </div>
   </section>
@@ -501,6 +519,46 @@ function renderEndividamento(e) {
       + (ocP!=null ? '<li>Operações de crédito: '+pct(oc.pct)+' → <strong>~'+ocP.toFixed(1).replace('.',',')+'%</strong> (teto 16%) — consome quase todo o limite anual.</li>' : '')
       + (garP!=null ? '<li>Garantias: '+pct(gar.pct)+' → <strong>~'+garP.toFixed(1).replace('.',',')+'%</strong> (teto 22%).</li>' : '')
       + '</ul>';
+}
+
+function renderArt167a(a) {
+  var sec = document.getElementById('art167a');
+  if (!a || a.pct == null) { if (sec) sec.style.display = 'none'; return; }
+  function fmtBi(v){ return 'R$ '+(num(v)/1e9).toFixed(2).replace('.',',')+' bi'; }
+  function pct(v){ return num(v).toFixed(1).replace('.',',')+'%'; }
+  var p = num(a.pct), lim = num(a.limite_pct) || 95;
+  var over = p >= lim;
+  var col = over ? cssVar('--color-negative') : cssVar('--g500');
+
+  document.getElementById('a167-periodo').textContent = clean(a.periodo);
+
+  // medidor 0–100% com a linha do teto de 95%
+  var fillW = Math.max(1, Math.min(100, p));
+  document.getElementById('a167-gauge').innerHTML =
+      '<div class="gauge"><div class="gauge-head">'
+      + '<span class="gauge-name">Relação apurada</span>'
+      + '<span class="gauge-val" style="color:'+col+'">'+pct(a.pct)+' <small>/ teto '+lim+'%</small></span></div>'
+      + '<div class="gauge-track"><div class="gauge-alert" style="left:'+lim+'%"></div>'
+      + '<div class="gauge-fill" style="width:'+fillW+'%;background:'+col+'"></div></div>'
+      + '<div class="gauge-sub">escala 0–100% · linha tracejada = teto de 95% (art. 167-A da CF)</div></div>';
+
+  document.getElementById('a167-kpis').innerHTML =
+      '<div class="kpi"><div class="kpi-label">Despesa corrente</div><div class="kpi-val">'+fmtBi(a.despesa_corrente)+'</div><div class="kpi-sub">'+(a.base_despesa||'')+'</div></div>'
+    + '<div class="kpi"><div class="kpi-label">Receita corrente</div><div class="kpi-val">'+fmtBi(a.receita_corrente)+'</div><div class="kpi-sub">realizada</div></div>';
+
+  document.getElementById('a167-diag').innerHTML =
+      '<li>Relação atual: <strong style="color:'+col+'">'+pct(a.pct)+'</strong> — '+(over?'<strong>acima</strong>':'abaixo')+' do teto de '+lim+'% (apuração de 12 meses).</li>'
+    + '<li>Base legal: <strong>art. 167-A da CF</strong> (EC 109/2021). Acima de 95%, fica <em>facultado</em> ao ente adotar as vedações de gasto.</li>'
+    + '<li>Vedações possíveis: reajustes e vantagens, criação de cargos, concursos, novas contratações, criação de despesa obrigatória (incisos I a X).</li>';
+
+  document.getElementById('a167-box').innerHTML =
+      '<strong>É daqui que vêm as restrições de 2026 — não do empréstimo do BRB.</strong> '
+      + 'Por estar acima dos 95%, o GDF adotou as vedações por decreto:'
+      + '<ul style="margin:8px 0 0;padding-left:18px;">'
+      + '<li><strong>Decreto nº 48.509/2026</strong> (24/04) — suspende reajustes, criação de cargos e nomeações; cria o Comitê Gestor do Gasto Público; corte de contratos.</li>'
+      + '<li><strong>Decreto nº 48.549/2026</strong> (06/05) — suspende limites mensais de gasto e centraliza a reprogramação orçamentária na Secretaria de Economia.</li>'
+      + '</ul>'
+      + '<div style="margin-top:8px;">As vedações são <strong>anteriores</strong> ao acordo do STF (ACO 3.755, 28/05) sobre o socorro ao BRB, que apenas as reforçou.</div>';
 }
 
 function renderPessoal(rows) {
@@ -838,6 +896,7 @@ async function init() {
     renderCapagHist(d.capag_historico || []);
     renderCaixaChart(d.caixa || []);
     renderEndividamento(d.endividamento);
+    renderArt167a(d.art_167a);
     renderPessoal(d.pessoal || []);
     renderCLP(d.clp_ranking || []);
     renderPPPs(d.ppps || []);

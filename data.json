@@ -54,6 +54,11 @@
         "limite_pct": 16.0,
         "limite_alerta_pct": 14.4,
         "aro_limite": 2837126562.49
+      },
+      "rreo_correntes": {
+        "receita_corrente": 38539795255.71,
+        "despesa_corrente_empenhada": null,
+        "despesa_corrente_ceof": 37400000000.0
       }
     },
     "fcdf_dotacao_atualizada": 28412205591.0,
@@ -79,7 +84,8 @@
       "kpi.beneficios": "dados-df-beneficiometro",
       "kpi.caixa": "siconfi-rgf-anexo05",
       "caixa": "siconfi-rgf-anexo05",
-      "endividamento": "siconfi-rgf-anexo02-03-04 (FINBRA 2026/1, injetado enquanto a API estava em 570)"
+      "endividamento": "siconfi-rgf-anexo02-03-04 (FINBRA 2026/1, injetado enquanto a API estava em 570)",
+      "art_167a": "siconfi-rreo-anexo01 (receita) + audiência CEOF 11/03/2026 (despesa); injetado enquanto a API estava em 570"
     },
     "divida_rgf_period": "2026/1"
   },
@@ -991,5 +997,13 @@
       }
     ],
     "brb_valor": 6500000000
+  },
+  "art_167a": {
+    "periodo": "2025 (exercício)",
+    "receita_corrente": 38539795255.71,
+    "despesa_corrente": 37400000000.0,
+    "pct": 97.0,
+    "limite_pct": 95,
+    "base_despesa": "audiência CEOF (3º quad/2025)"
   }
 }

@@ -294,6 +294,7 @@ def build():
     rreo_vals = siconfi.extract_rreo_balanco(rreo_balanco) if ok_rreo else {}
     rgf_dtp_vals = siconfi.extract_rgf_dtp(rgf_dtp) if ok_rgf_dtp else {}
     rgf_caixa_vals = siconfi.extract_rgf_caixa(rgf_caixa) if ok_rgf_caixa else {}
+    rreo_correntes_vals = siconfi.extract_rreo_correntes(rreo_balanco) if ok_rreo else {}
     rgf_dcl_vals = siconfi.extract_rgf_dcl(rgf_dcl, DIVIDA_RGF_QUAD) if ok_rgf_dcl else {}
     rgf_gar_vals = siconfi.extract_rgf_garantias(rgf_gar, DIVIDA_RGF_QUAD) if ok_rgf_gar else {}
     rgf_oc_vals = siconfi.extract_rgf_oper_credito(rgf_oc) if ok_rgf_oc else {}
@@ -510,6 +511,23 @@ def build():
         }
         sources["endividamento"] = "siconfi-rgf-anexo02-03-04"
 
+    # ---- Art. 167-A da CF (relação despesa corrente / receita corrente > 95%) ----
+    # Gatilho do mecanismo de ajuste fiscal (EC 109/2021) que fundamenta as vedações do
+    # GDF em 2026 (Decretos 48.509 e 48.549). Apurado sobre o RREO de fechamento.
+    art_167a = None
+    rc = rreo_correntes_vals.get("receita_corrente")
+    dc_corr = rreo_correntes_vals.get("despesa_corrente_empenhada")
+    if rc and dc_corr:
+        art_167a = {
+            "periodo": f"{RREO_CLOSED_YEAR} (exercício)",
+            "receita_corrente": rc,
+            "despesa_corrente": dc_corr,
+            "pct": round(dc_corr / rc * 100, 1),
+            "limite_pct": 95,
+            "base_despesa": "empenhada",
+        }
+        sources["art_167a"] = "siconfi-rreo-anexo01-calc"
+
     # ---- Compose final data.json ----
     data = {
         "_meta": {
@@ -525,6 +543,7 @@ def build():
             "raw_siconfi": {
                 "rreo_current": rreo_current_vals,
                 "rreo_closed": rreo_vals,
+                "rreo_correntes": rreo_correntes_vals,
                 "rgf_dtp": rgf_dtp_vals,
                 "rgf_caixa": rgf_caixa_vals,
                 "rgf_dcl": rgf_dcl_vals,
@@ -547,6 +566,7 @@ def build():
         "beneficios_detalhado": beneficios_agg,  # None se o arquivo não existir
         "riscos_fiscais": _build_riscos_fiscais(sheets.get("riscos_fiscais", [])),
         "endividamento": endividamento,  # None se a API do RGF Anexo 02 falhar
+        "art_167a": art_167a,            # None se o RREO Anexo 01 falhar
     }
 
     with open(OUTPUT, "w", encoding="utf-8") as f:

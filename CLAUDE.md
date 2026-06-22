@@ -73,6 +73,7 @@ Mirrors the previous Excel sheet names for backward compatibility with the rende
 | `ppps` | `renderPPPs` | `nome`, `status` ("A contratar" / "Suspenso" / "Contratada") |
 | `ppps_projecao` | `renderPPPProj` | `ano`, `despesas_ppp`, `rcl`, `pct` |
 | `endividamento` | `renderEndividamento` | `periodo`, `rcl_ajustada`, `dc`, `dc_pct`, `brb_valor`, e `limites[]` com 3 itens (`chave` ∈ {dcl, oper_credito, garantias}, `nome`, `valor`, `pct`, `limite_pct`, `alerta_pct`, `limite_valor`, `norma`). `null` se a API do RGF falhar (a seção se auto-oculta). |
+| `art_167a` | `renderArt167a` | `periodo`, `receita_corrente`, `despesa_corrente`, `pct`, `limite_pct` (95), `base_despesa`. Gatilho do art. 167-A da CF (despesa corrente ÷ receita corrente). `null` se o RREO Anexo 01 falhar (a seção se auto-oculta). |
 | `_meta` | (not rendered) | `updated_at`, periods, populacao_df, raw_siconfi, fcdf_dotacao_atualizada, `sources` |
 
 `_meta.sources` shows the provenance of each key/sub-key (`manual`, `csv-local`, `siconfi-rreo-atual`, `portal-transparencia-scrape`, etc.) — useful for debugging.
@@ -94,6 +95,7 @@ Mirrors the previous Excel sheet names for backward compatibility with the rende
 | KPI beneficios (sub) | calc: beneficios / receita_impostos × 100 | receita_impostos vem da aba `kpis` linha 8 (manual, RREO Anexo 8 — não disponível no SICONFI) |
 | Seção `beneficios_detalhado` (3 gráficos) | Dataset `beneficiometro/renuncias-{ano}.txt` | Agregações: por tributo, top 10 benefícios, top 10 beneficiários com setor inferido |
 | Seção `riscos_fiscais` (2 cards) | Aba `riscos_fiscais` do manual XLSX | Anexo XII do PLDO (atualização anual). Agregados: total, por bloco, por dependência (STF/Contratual/Operacional/Cambial/Macro), top 10 individual. |
+| Seção `art_167a` (gatilho 95%) | SICONFI RREO Anexo 01 (fechamento) — `extract_rreo_correntes` | `cod_conta` `ReceitasCorrentes` (coluna `Até o Bimestre (c)`) e `DespesasCorrentes` (coluna `DESPESAS EMPENHADAS ATÉ O BIMESTRE (f)`). pct = despesa/receita. Teto de 95% (art. 167-A CF, EC 109/2021) — gatilho das vedações dos Decretos 48.509/48.549 de 2026. |
 | `investimentos` (ranking 27 UFs) | manual | Ainda não automatizado (requer 54 chamadas SICONFI) |
 | `pessoal.atual_pct`, `rcl_bi` | SICONFI RGF Anexo 01 (DTP) | linha `ReceitaCorrenteLiquidaLimiteLegal` + `DespesaComPessoalTotal`. Inseridos via upsert no array de pessoal. |
 | `pessoal.alerta_pct/prudencial_pct/maximo_pct` | Manual (limites legais da LRF) | Aba `pessoal` |

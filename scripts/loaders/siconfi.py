@@ -106,6 +106,26 @@ def extract_rreo_balanco(rows):
     }
 
 
+# ── RREO Anexo 01 — Receitas/Despesas Correntes (art. 167-A) ─────
+def extract_rreo_correntes(rows):
+    """Extract current revenue/expense from RREO Anexo 01 (Balanço Orçamentário) for the
+    art. 167-A indicator (relação despesas correntes / receitas correntes > 95% — EC 109/2021).
+
+    O anexo traz a tabela de Receitas (cod_conta `ReceitasCorrentes`, coluna realizada
+    "Até o Bimestre (c)") e a de Despesas (cod_conta `DespesasCorrentes`). Para a despesa
+    usamos a coluna empenhada "DESPESAS EMPENHADAS ATÉ O BIMESTRE (f)" (medida de
+    comprometimento do exercício). No RREO de fechamento (6º bim) ambos refletem o ano cheio.
+    """
+    return {
+        "receita_corrente": find_value(
+            rows, cod_conta="ReceitasCorrentes", coluna="Até o Bimestre (c)"
+        ),
+        "despesa_corrente_empenhada": find_value(
+            rows, cod_conta="DespesasCorrentes", coluna="DESPESAS EMPENHADAS ATÉ O BIMESTRE (f)"
+        ),
+    }
+
+
 # ── RGF Anexo 01 — DTP / Apuração do Limite Legal ────────────────
 def extract_rgf_dtp(rows):
     """Extract personnel-expense indicators from RGF Anexo 01.
