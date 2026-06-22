@@ -72,6 +72,7 @@ Mirrors the previous Excel sheet names for backward compatibility with the rende
 | `clp_ranking` | `renderCLP` | `indicador`, `posicao`, `conceito` |
 | `ppps` | `renderPPPs` | `nome`, `status` ("A contratar" / "Suspenso" / "Contratada") |
 | `ppps_projecao` | `renderPPPProj` | `ano`, `despesas_ppp`, `rcl`, `pct` |
+| `endividamento` | `renderEndividamento` | `periodo`, `dc`, `dcl`, `rcl_ajustada`, `dc_rcl_pct`, `dcl_rcl_pct`, `limite_senado`, `limite_pct` (200), `limite_alerta_pct` (180). `null` se a API do RGF Anexo 02 falhar (a seção se auto-oculta). |
 | `_meta` | (not rendered) | `updated_at`, periods, populacao_df, raw_siconfi, fcdf_dotacao_atualizada, `sources` |
 
 `_meta.sources` shows the provenance of each key/sub-key (`manual`, `csv-local`, `siconfi-rreo-atual`, `portal-transparencia-scrape`, etc.) — useful for debugging.
@@ -88,6 +89,7 @@ Mirrors the previous Excel sheet names for backward compatibility with the rende
 | KPI investimento_rcl (sub) | Aba `investimentos` do manual — posição do DF | "20º lugar no Brasil" derivado do ranking manual |
 | KPI capag (nota) | CAPAG CSVs locais | Atualização anual quando STN publica |
 | KPI caixa + tabela `caixa` (5 anos) | SICONFI RGF Anexo 05 (3º quad de cada ano) | `cod_conta=DisponibilidadeDeCaixaLiquidaAposRP` + conta TOTAL (IV) ou (III) |
+| Seção `endividamento` (DCL) | SICONFI RGF Anexo 02 — período `DIVIDA_RGF_*` (mais recente publicado, ≠ do RGF de fechamento) | `cod_conta` DCL: `DividaConsolidadaLiquida`, `DividaConsolidada`, `RGF2ReceitaCorrenteLiquida`, `ReceitaCorrenteLiquidaAjustada...`, `PercentualDaDCLSobreARCL`, `PercentualDaDCSobreARCL`, `LimiteDefinidoPorResolucaoDoSenadoFederal`, `LimiteDeAlerta`. Coluna do período = `Até o Nº Quadrimestre`. Operação BRB/FGC só entra a partir do RGF 2026/2. |
 | KPI beneficios (valor) | Dataset `beneficiometro/renuncias-{ano}.txt` (dados.df.gov.br) | Total agregado do TXT publicado pela SEEC; fallback p/ manual XLSX se ausente |
 | KPI beneficios (sub) | calc: beneficios / receita_impostos × 100 | receita_impostos vem da aba `kpis` linha 8 (manual, RREO Anexo 8 — não disponível no SICONFI) |
 | Seção `beneficios_detalhado` (3 gráficos) | Dataset `beneficiometro/renuncias-{ano}.txt` | Agregações: por tributo, top 10 benefícios, top 10 beneficiários com setor inferido |

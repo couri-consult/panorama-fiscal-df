@@ -124,6 +124,33 @@ def extract_rgf_dtp(rows):
     }
 
 
+# ── RGF Anexo 02 — Dívida Consolidada Líquida (DCL) ──────────────
+def extract_rgf_dcl(rows, quad):
+    """Extract consolidated-debt indicators from RGF Anexo 02.
+
+    The annex reports each account across two columns: "SALDO DO EXERCÍCIO ANTERIOR"
+    (prior year close) and "Até o Nº Quadrimestre" (the reference period). We read the
+    reference-period column, whose label depends on `quad` (1/2/3).
+
+    Returns (all BRL except the *_pct fields, which are percentages already computed by STN):
+      - dcl, dc, rcl, rcl_ajustada
+      - dcl_rcl_pct (% DCL / RCL ajustada — III/VI), dc_rcl_pct (% DC / RCL ajustada)
+      - limite_senado (200% da RCL — Res. Senado 40/2001), limite_alerta (90% do limite)
+    """
+    col = f"Até o {quad}º Quadrimestre"
+    fv = lambda cc: find_value(rows, cod_conta=cc, coluna=col)
+    return {
+        "dcl": fv("DividaConsolidadaLiquida"),
+        "dc": fv("DividaConsolidada"),
+        "rcl": fv("RGF2ReceitaCorrenteLiquida"),
+        "rcl_ajustada": fv("ReceitaCorrenteLiquidaAjustadaParaCalculoDosLimitesDeEndividamento"),
+        "dcl_rcl_pct": fv("PercentualDaDCLSobreARCL"),
+        "dc_rcl_pct": fv("PercentualDaDCSobreARCL"),
+        "limite_senado": fv("LimiteDefinidoPorResolucaoDoSenadoFederal"),
+        "limite_alerta": fv("LimiteDeAlerta"),
+    }
+
+
 # ── RGF Anexo 05 — Disponibilidade de Caixa ──────────────────────
 # Coluna name is enormous and SICONFI stores it verbatim.
 CAIXA_COLUNA_LIQUIDA_APOS_RP = (

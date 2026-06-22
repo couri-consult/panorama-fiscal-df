@@ -49,15 +49,20 @@ OUTPUT = os.path.join(ROOT, "data.json")
 
 # Reference periods for the current dashboard snapshot.
 # We use TWO RREO snapshots for different reasons:
-#   - RREO_CURRENT (2026/1): latest published, used for "Orçamento DF em 2026"
+#   - RREO_CURRENT (2026/2): latest published, used for "Orçamento DF em 2026"
 #   - RREO_CLOSED  (2025/6): closing of 2025, used for investimento liquidado + receita
 #     de impostos realizada (so we compare full-year fiscal values, not partial 2026).
 RREO_CURRENT_YEAR = 2026
-RREO_CURRENT_BIM = 1
+RREO_CURRENT_BIM = 2
 RREO_CLOSED_YEAR = 2025
 RREO_CLOSED_BIM = 6
 DEFAULT_RGF_YEAR = 2025
 DEFAULT_RGF_QUAD = 3
+# Endividamento (RGF Anexo 02/03/04) usa o quadrimestre mais recente publicado,
+# decoplado do RGF de fechamento acima — para acompanhar a dívida (inclui o efeito
+# futuro do socorro ao BRB via FGC, que só entra a partir do 2026/2º quad).
+DIVIDA_RGF_YEAR = 2026
+DIVIDA_RGF_QUAD = 1
 DEFAULT_POP_YEAR = 2024
 FCDF_BUDGET_YEAR = 2026  # ano do orçamento FCDF a buscar no Portal da Transparência
 
@@ -267,12 +272,19 @@ def build():
         lambda: siconfi.fetch_rgf(DEFAULT_RGF_YEAR, DEFAULT_RGF_QUAD, "RGF-Anexo 05"),
         [],
     )
+    # RGF Anexo 02 (DCL) — período mais recente, para a seção de Endividamento
+    rgf_dcl, ok_rgf_dcl = safely(
+        f"RGF {DIVIDA_RGF_YEAR}/{DIVIDA_RGF_QUAD} Anexo 02 (DCL)",
+        lambda: siconfi.fetch_rgf(DIVIDA_RGF_YEAR, DIVIDA_RGF_QUAD, "RGF-Anexo 02"),
+        [],
+    )
 
     # Extract specific values & overlay into kpis/pessoal
     rreo_current_vals = siconfi.extract_rreo_balanco(rreo_current) if ok_rreo_current else {}
     rreo_vals = siconfi.extract_rreo_balanco(rreo_balanco) if ok_rreo else {}
     rgf_dtp_vals = siconfi.extract_rgf_dtp(rgf_dtp) if ok_rgf_dtp else {}
     rgf_caixa_vals = siconfi.extract_rgf_caixa(rgf_caixa) if ok_rgf_caixa else {}
+    rgf_dcl_vals = siconfi.extract_rgf_dcl(rgf_dcl, DIVIDA_RGF_QUAD) if ok_rgf_dcl else {}
 
     print("\nValores extraídos do SICONFI:")
     for label, vals in [("RREO atual", rreo_current_vals), ("RREO fechamento", rreo_vals),
@@ -440,6 +452,26 @@ def build():
             clp_pos_geral = str(r.get("valor", "")).strip()
             break
 
+    # ---- Endividamento (RGF Anexo 02 — DCL) ----
+    endividamento = None
+    if rgf_dcl_vals.get("dcl") is not None:
+        ajust = rgf_dcl_vals.get("rcl_ajustada")
+        lim = rgf_dcl_vals.get("limite_senado")
+        endividamento = {
+            "periodo": f"{DIVIDA_RGF_YEAR}/{DIVIDA_RGF_QUAD}",
+            "dc": rgf_dcl_vals.get("dc"),
+            "dcl": rgf_dcl_vals.get("dcl"),
+            "rcl_ajustada": ajust,
+            "dc_rcl_pct": rgf_dcl_vals.get("dc_rcl_pct"),
+            "dcl_rcl_pct": rgf_dcl_vals.get("dcl_rcl_pct"),
+            "limite_senado": lim,
+            # Limites legais (Res. Senado Federal 40/2001): DCL ≤ 200% da RCL;
+            # limite de alerta = 90% do limite (180% da RCL).
+            "limite_pct": 200,
+            "limite_alerta_pct": 180,
+        }
+        sources["endividamento"] = "siconfi-rgf-anexo02"
+
     # ---- Compose final data.json ----
     data = {
         "_meta": {
@@ -447,6 +479,7 @@ def build():
             "rreo_current_period": f"{RREO_CURRENT_YEAR}/{RREO_CURRENT_BIM}",
             "rreo_closed_period": f"{RREO_CLOSED_YEAR}/{RREO_CLOSED_BIM}",
             "rgf_period": f"{DEFAULT_RGF_YEAR}/{DEFAULT_RGF_QUAD}",
+            "divida_rgf_period": f"{DIVIDA_RGF_YEAR}/{DIVIDA_RGF_QUAD}",
             "populacao_df_year": DEFAULT_POP_YEAR,
             "populacao_df": populacao_df,
             "capag_nota_consolidada": capag_nota,
@@ -456,6 +489,7 @@ def build():
                 "rreo_closed": rreo_vals,
                 "rgf_dtp": rgf_dtp_vals,
                 "rgf_caixa": rgf_caixa_vals,
+                "rgf_dcl": rgf_dcl_vals,
             },
             "fcdf_dotacao_atualizada": fcdf_dotacao,
             "sources": sources,
@@ -472,6 +506,7 @@ def build():
         "agenda": sheets.get("agenda", []),
         "beneficios_detalhado": beneficios_agg,  # None se o arquivo não existir
         "riscos_fiscais": _build_riscos_fiscais(sheets.get("riscos_fiscais", [])),
+        "endividamento": endividamento,  # None se a API do RGF Anexo 02 falhar
     }
 
     with open(OUTPUT, "w", encoding="utf-8") as f:

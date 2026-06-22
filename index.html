@@ -44,7 +44,7 @@ main{max-width:1100px;margin:0 auto;padding:36px 24px 64px;}
 .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:14px;margin-bottom:10px;}
 .kpi{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-card);padding:18px 16px 15px;border-top:3px solid var(--color-bg-soft);box-shadow:var(--shadow-card);transition:transform var(--transition-base),box-shadow var(--transition-base);}
 .kpi:hover{transform:translateY(-2px);box-shadow:var(--shadow-hover);}
-.kpi.red{border-top-color:var(--color-negative);}.kpi.amber{border-top-color:var(--color-warning);}.kpi.blue{border-top-color:var(--blue);}
+.kpi.red{border-top-color:var(--color-negative);}.kpi.amber{border-top-color:var(--color-warning);}.kpi.blue{border-top-color:var(--blue);}.kpi.green{border-top-color:var(--color-positive);}
 .kpi-val{font-size:20px;font-weight:var(--weight-bold);line-height:1.2;margin-bottom:var(--space-1);font-family:var(--font-mono);font-variant-numeric:tabular-nums;}
 .cv-green{color:var(--color-text-on-light);}.cv-red{color:var(--color-negative);}.cv-amber{color:var(--color-warning);}.cv-blue{color:var(--blue);}
 .kpi-label{font-size:var(--text-label);font-weight:var(--weight-semibold);color:var(--color-text-muted);margin-bottom:var(--space-1);letter-spacing:.02em;}
@@ -105,6 +105,7 @@ footer{text-align:center;font-size:var(--text-label);color:var(--color-text-mute
   <a href="#visao-geral" class="active">Visão Geral</a>
   <a href="#investimento">Investimento</a>
   <a href="#capag">CAPAG e Caixa</a>
+  <a href="#endividamento">Endividamento</a>
   <a href="#pessoal">Pessoal / LRF</a>
   <a href="#beneficios">Benefícios</a>
   <a href="#riscos">Riscos Fiscais</a>
@@ -159,6 +160,30 @@ footer{text-align:center;font-size:var(--text-label);color:var(--color-text-mute
         <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--color-negative);margin-right:4px;"></span>Rec. não vinculados</span>
       </div>
       <div class="fonte" id="fonte-caixa">Fonte: Siconfi/Tesouro</div>
+    </div>
+  </section>
+
+  <section class="section" id="endividamento">
+    <div class="section-title">Endividamento — Dívida Consolidada Líquida</div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">DCL e limites legais — <span id="div-periodo"></span></div>
+        <div id="endiv-kpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:16px;"></div>
+        <div style="position:relative;height:140px;"><canvas id="chartEndiv" role="img" aria-label="DCL frente aos limites legais"></canvas></div>
+        <div style="font-size:11px;color:var(--color-text-muted);margin-top:6px;text-align:center;">DCL como % da RCL ajustada · limite de alerta 180% · teto 200% (Res. Senado 40/2001)</div>
+        <div class="fonte">Fonte: Siconfi/Tesouro — RGF Anexo 02</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Leitura</div>
+        <ul class="dl" id="endiv-diag"></ul>
+        <div style="margin-top:12px;padding:12px;border-radius:var(--radius-input);background:var(--color-warning-bg,#fdf6e3);border:1px solid var(--color-warning);font-size:12.5px;line-height:1.6;color:var(--text);">
+          <strong>⚠ Operação BRB/FGC (2026):</strong> empréstimo de até <strong>R$ 6,5 bi</strong> do FGC ao BRB,
+          com o GDF como garantidor (Lei 7.845/2026) e contragarantia em FPE/FPM. Conta como
+          <strong>operação de crédito do DF</strong> (limite de 16% da RCL — Res. Senado 43/2001) e eleva
+          a DCL. O efeito ainda <strong>não consta</strong> nos dados acima (até o 1º quad/2026, antes da
+          contratação) — deve aparecer a partir do <strong>RGF do 2º quad/2026</strong> (≈ set/2026).
+        </div>
+      </div>
     </div>
   </section>
 
@@ -419,6 +444,55 @@ function renderCaixaChart(rows) {
       plugins:{legend:{display:false}},
       scales:{y:{ticks:{callback:function(v){return(v<0?'−':'')+'R$ '+Math.abs(v).toFixed(1)+'bi';},font:{size:11}},grid:{color:cssVar('--color-border')}},x:{ticks:{font:{size:11}}}}}
   });
+}
+
+var __endivChart = null;
+function renderEndividamento(e) {
+  var sec = document.getElementById('endividamento');
+  if (!e) { if (sec) sec.style.display = 'none'; return; }
+  function fmtBi(v){ return 'R$ '+(num(v)/1e9).toFixed(2).replace('.',',')+' bi'; }
+  function pct(v){ return num(v).toFixed(2).replace('.',',')+'%'; }
+
+  var dclPct = num(e.dcl_rcl_pct), dcPct = num(e.dc_rcl_pct);
+  var limPct = num(e.limite_pct) || 200, alertPct = num(e.limite_alerta_pct) || 180;
+  var folgaPp = limPct - dclPct;                       // pontos percentuais até o teto
+  var folgaRs = folgaPp / 100 * num(e.rcl_ajustada);   // folga em R$
+
+  var pe = document.getElementById('div-periodo');
+  if (pe) pe.textContent = clean(e.periodo);
+
+  document.getElementById('endiv-kpis').innerHTML =
+      '<div class="kpi"><div class="kpi-label">DCL</div><div class="kpi-val">'+fmtBi(e.dcl)
+        +'</div><div class="kpi-sub">'+pct(e.dcl_rcl_pct)+' da RCL ajustada</div></div>'
+    + '<div class="kpi"><div class="kpi-label">Dívida bruta (DC)</div><div class="kpi-val">'+fmtBi(e.dc)
+        +'</div><div class="kpi-sub">'+pct(e.dc_rcl_pct)+' da RCL ajustada</div></div>'
+    + '<div class="kpi green"><div class="kpi-label">Folga até o teto</div>'
+        +'<div class="kpi-val" style="color:var(--color-positive)">'+fmtBi(folgaRs)+'</div>'
+        +'<div class="kpi-sub">'+folgaPp.toFixed(0)+' p.p. abaixo de '+limPct+'%</div></div>';
+
+  if (__endivChart) { try { __endivChart.destroy(); } catch(_){} }
+  __endivChart = new Chart(document.getElementById('chartEndiv'), {
+    type:'bar',
+    data:{ labels:['DCL'], datasets:[
+      { label:'Limite de alerta', data:[alertPct], backgroundColor:'transparent',
+        borderColor:cssVar('--color-warning'), borderWidth:{top:0,bottom:0,left:0,right:2}, grouped:false, barPercentage:0.9 },
+      { label:'Teto (Senado)', data:[limPct], backgroundColor:cssVar('--color-bg-soft')+'22',
+        grouped:false, barPercentage:0.9, borderRadius:4 },
+      { label:'DCL', data:[dclPct], backgroundColor:cssVar('--g500'),
+        grouped:false, barPercentage:0.9, borderRadius:4 },
+    ]},
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false},
+        tooltip:{ callbacks:{ label:function(c){ return c.dataset.label+': '+c.parsed.x.toFixed(2).replace('.',',')+'% da RCL'; } } } },
+      scales:{ x:{ min:0, max:limPct+10, ticks:{ callback:function(v){return v+'%';}, font:{size:10} }, grid:{color:cssVar('--color-border')} },
+               y:{ display:false } } }
+  });
+
+  document.getElementById('endiv-diag').innerHTML =
+      '<li>DCL: <strong>'+fmtBi(e.dcl)+'</strong> — '+pct(e.dcl_rcl_pct)+' da RCL ajustada</li>'
+    + '<li>Teto legal (200% da RCL): <strong>'+fmtBi(e.limite_senado)+'</strong></li>'
+    + '<li>Dívida bruta (DC): <strong>'+fmtBi(e.dc)+'</strong> ('+pct(e.dc_rcl_pct)+')</li>'
+    + '<li>Situação: <strong style="color:var(--color-positive)">muito confortável</strong> — endividamento baixo para o padrão estadual</li>';
 }
 
 function renderPessoal(rows) {
@@ -755,6 +829,7 @@ async function init() {
     renderCapag(d.capag || [], meta.capag_nota_consolidada || 'C');
     renderCapagHist(d.capag_historico || []);
     renderCaixaChart(d.caixa || []);
+    renderEndividamento(d.endividamento);
     renderPessoal(d.pessoal || []);
     renderCLP(d.clp_ranking || []);
     renderPPPs(d.ppps || []);

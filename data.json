@@ -28,6 +28,16 @@
       "rgf_caixa": {
         "caixa_liquido_total": 569983266.93,
         "caixa_liquido_nao_vinculado": -876632452.24
+      },
+      "rgf_dcl": {
+        "dcl": 5358924723.57,
+        "dc": 10165243928.74,
+        "rcl": 40642374084.02,
+        "rcl_ajustada": 40530379464.12,
+        "dcl_rcl_pct": 13.22,
+        "dc_rcl_pct": 25.08,
+        "limite_senado": 81060758928.24,
+        "limite_alerta": 72954683035.42
       }
     },
     "fcdf_dotacao_atualizada": 28412205591.0,
@@ -52,8 +62,10 @@
       "kpi.beneficios.sub": "manual-rreo-anexo08",
       "kpi.beneficios": "dados-df-beneficiometro",
       "kpi.caixa": "siconfi-rgf-anexo05",
-      "caixa": "siconfi-rgf-anexo05"
-    }
+      "caixa": "siconfi-rgf-anexo05",
+      "endividamento": "siconfi-rgf-anexo02 (FINBRA 2026/1, injetado manualmente enquanto a API estava em 570)"
+    },
+    "divida_rgf_period": "2026/1"
   },
   "kpis": [
     {
@@ -924,5 +936,16 @@
       }
     ],
     "conc_top2_pct": 82.73899268482491
+  },
+  "endividamento": {
+    "periodo": "2026/1",
+    "dc": 10165243928.74,
+    "dcl": 5358924723.57,
+    "rcl_ajustada": 40530379464.12,
+    "dc_rcl_pct": 25.08,
+    "dcl_rcl_pct": 13.22,
+    "limite_senado": 81060758928.24,
+    "limite_pct": 200,
+    "limite_alerta_pct": 180
   }
 }
