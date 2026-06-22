@@ -45,6 +45,15 @@ main{max-width:1100px;margin:0 auto;padding:36px 24px 64px;}
 .kpi{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-card);padding:18px 16px 15px;border-top:3px solid var(--color-bg-soft);box-shadow:var(--shadow-card);transition:transform var(--transition-base),box-shadow var(--transition-base);}
 .kpi:hover{transform:translateY(-2px);box-shadow:var(--shadow-hover);}
 .kpi.red{border-top-color:var(--color-negative);}.kpi.amber{border-top-color:var(--color-warning);}.kpi.blue{border-top-color:var(--blue);}.kpi.green{border-top-color:var(--color-positive);}
+.gauge{margin-bottom:18px;}
+.gauge-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;}
+.gauge-name{font-size:13px;font-weight:var(--weight-semibold);color:var(--text);}
+.gauge-val{font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-size:13px;font-weight:var(--weight-bold);}
+.gauge-val small{font-weight:400;color:var(--color-text-muted);font-size:11px;}
+.gauge-track{position:relative;height:14px;background:var(--g100,#E8F5E9);border:1px solid var(--color-border);border-radius:7px;overflow:hidden;}
+.gauge-fill{position:absolute;top:0;left:0;height:100%;border-radius:7px 0 0 7px;min-width:2px;}
+.gauge-alert{position:absolute;top:-2px;bottom:-2px;width:0;border-left:2px dashed var(--color-warning);z-index:2;}
+.gauge-sub{font-size:11px;color:var(--color-text-muted);margin-top:4px;}
 .kpi-val{font-size:20px;font-weight:var(--weight-bold);line-height:1.2;margin-bottom:var(--space-1);font-family:var(--font-mono);font-variant-numeric:tabular-nums;}
 .cv-green{color:var(--color-text-on-light);}.cv-red{color:var(--color-negative);}.cv-amber{color:var(--color-warning);}.cv-blue{color:var(--blue);}
 .kpi-label{font-size:var(--text-label);font-weight:var(--weight-semibold);color:var(--color-text-muted);margin-bottom:var(--space-1);letter-spacing:.02em;}
@@ -164,25 +173,20 @@ footer{text-align:center;font-size:var(--text-label);color:var(--color-text-mute
   </section>
 
   <section class="section" id="endividamento">
-    <div class="section-title">Endividamento — Dívida Consolidada Líquida</div>
+    <div class="section-title">Endividamento e limites do Senado</div>
     <div class="two-col">
       <div class="card">
-        <div class="card-title">DCL e limites legais — <span id="div-periodo"></span></div>
-        <div id="endiv-kpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:16px;"></div>
-        <div style="position:relative;height:140px;"><canvas id="chartEndiv" role="img" aria-label="DCL frente aos limites legais"></canvas></div>
-        <div style="font-size:11px;color:var(--color-text-muted);margin-top:6px;text-align:center;">DCL como % da RCL ajustada · limite de alerta 180% · teto 200% (Res. Senado 40/2001)</div>
-        <div class="fonte">Fonte: Siconfi/Tesouro — RGF Anexo 02</div>
+        <div class="card-title">Limites de endividamento — <span id="div-periodo"></span></div>
+        <div id="endiv-gauges"></div>
+        <div style="font-size:11px;color:var(--color-text-muted);margin-top:2px;">
+          <span style="display:inline-block;width:0;border-left:2px dashed var(--color-warning);height:10px;vertical-align:middle;margin-right:5px;"></span>linha tracejada = limite de alerta (90% do teto)
+        </div>
+        <div class="fonte">Fonte: Siconfi/Tesouro — RGF Anexos 02, 03 e 04 (% sobre a RCL ajustada)</div>
       </div>
       <div class="card">
-        <div class="card-title">Leitura</div>
+        <div class="card-title">Leitura — estoque × fluxo e o caso BRB</div>
         <ul class="dl" id="endiv-diag"></ul>
-        <div style="margin-top:12px;padding:12px;border-radius:var(--radius-input);background:var(--color-warning-bg,#fdf6e3);border:1px solid var(--color-warning);font-size:12.5px;line-height:1.6;color:var(--text);">
-          <strong>⚠ Operação BRB/FGC (2026):</strong> empréstimo de até <strong>R$ 6,5 bi</strong> do FGC ao BRB,
-          com o GDF como garantidor (Lei 7.845/2026) e contragarantia em FPE/FPM. Conta como
-          <strong>operação de crédito do DF</strong> (limite de 16% da RCL — Res. Senado 43/2001) e eleva
-          a DCL. O efeito ainda <strong>não consta</strong> nos dados acima (até o 1º quad/2026, antes da
-          contratação) — deve aparecer a partir do <strong>RGF do 2º quad/2026</strong> (≈ set/2026).
-        </div>
+        <div id="endiv-brb" style="margin-top:12px;padding:12px;border-radius:var(--radius-input);background:var(--color-warning-bg,#fdf6e3);border:1px solid var(--color-warning);font-size:12.5px;line-height:1.6;color:var(--text);"></div>
       </div>
     </div>
   </section>
@@ -446,53 +450,57 @@ function renderCaixaChart(rows) {
   });
 }
 
-var __endivChart = null;
 function renderEndividamento(e) {
   var sec = document.getElementById('endividamento');
-  if (!e) { if (sec) sec.style.display = 'none'; return; }
+  if (!e || !e.limites || !e.limites.length) { if (sec) sec.style.display = 'none'; return; }
   function fmtBi(v){ return 'R$ '+(num(v)/1e9).toFixed(2).replace('.',',')+' bi'; }
+  function fmtVal(v){ v=num(v); return Math.abs(v) >= 1e9 ? fmtBi(v) : 'R$ '+(v/1e6).toFixed(0)+' mi'; }
   function pct(v){ return num(v).toFixed(2).replace('.',',')+'%'; }
-
-  var dclPct = num(e.dcl_rcl_pct), dcPct = num(e.dc_rcl_pct);
-  var limPct = num(e.limite_pct) || 200, alertPct = num(e.limite_alerta_pct) || 180;
-  var folgaPp = limPct - dclPct;                       // pontos percentuais até o teto
-  var folgaRs = folgaPp / 100 * num(e.rcl_ajustada);   // folga em R$
 
   var pe = document.getElementById('div-periodo');
   if (pe) pe.textContent = clean(e.periodo);
 
-  document.getElementById('endiv-kpis').innerHTML =
-      '<div class="kpi"><div class="kpi-label">DCL</div><div class="kpi-val">'+fmtBi(e.dcl)
-        +'</div><div class="kpi-sub">'+pct(e.dcl_rcl_pct)+' da RCL ajustada</div></div>'
-    + '<div class="kpi"><div class="kpi-label">Dívida bruta (DC)</div><div class="kpi-val">'+fmtBi(e.dc)
-        +'</div><div class="kpi-sub">'+pct(e.dc_rcl_pct)+' da RCL ajustada</div></div>'
-    + '<div class="kpi green"><div class="kpi-label">Folga até o teto</div>'
-        +'<div class="kpi-val" style="color:var(--color-positive)">'+fmtBi(folgaRs)+'</div>'
-        +'<div class="kpi-sub">'+folgaPp.toFixed(0)+' p.p. abaixo de '+limPct+'%</div></div>';
-
-  if (__endivChart) { try { __endivChart.destroy(); } catch(_){} }
-  __endivChart = new Chart(document.getElementById('chartEndiv'), {
-    type:'bar',
-    data:{ labels:['DCL'], datasets:[
-      { label:'Limite de alerta', data:[alertPct], backgroundColor:'transparent',
-        borderColor:cssVar('--color-warning'), borderWidth:{top:0,bottom:0,left:0,right:2}, grouped:false, barPercentage:0.9 },
-      { label:'Teto (Senado)', data:[limPct], backgroundColor:cssVar('--color-bg-soft')+'22',
-        grouped:false, barPercentage:0.9, borderRadius:4 },
-      { label:'DCL', data:[dclPct], backgroundColor:cssVar('--g500'),
-        grouped:false, barPercentage:0.9, borderRadius:4 },
-    ]},
-    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:false},
-        tooltip:{ callbacks:{ label:function(c){ return c.dataset.label+': '+c.parsed.x.toFixed(2).replace('.',',')+'% da RCL'; } } } },
-      scales:{ x:{ min:0, max:limPct+10, ticks:{ callback:function(v){return v+'%';}, font:{size:10} }, grid:{color:cssVar('--color-border')} },
-               y:{ display:false } } }
+  // ── Três medidores (DCL · operações de crédito · garantias)
+  var html = '';
+  e.limites.forEach(function(l){
+    var p = num(l.pct), lim = num(l.limite_pct), al = num(l.alerta_pct);
+    var fillW = Math.max(0.5, Math.min(100, p / lim * 100));   // % do caminho até o teto
+    var alLeft = Math.min(100, al / lim * 100);
+    var col = p >= lim ? cssVar('--color-negative') : p >= al ? cssVar('--color-warning') : cssVar('--g500');
+    html +=
+      '<div class="gauge">'
+      + '<div class="gauge-head"><span class="gauge-name">'+l.nome+'</span>'
+        + '<span class="gauge-val" style="color:'+col+'">'+pct(l.pct)+' <small>/ '+lim+'%</small></span></div>'
+      + '<div class="gauge-track"><div class="gauge-alert" style="left:'+alLeft+'%"></div>'
+        + '<div class="gauge-fill" style="width:'+fillW+'%;background:'+col+'"></div></div>'
+      + '<div class="gauge-sub">'+fmtVal(l.valor)+' de um teto de '+fmtBi(l.limite_valor)+' · '+l.norma+'</div>'
+      + '</div>';
   });
+  document.getElementById('endiv-gauges').innerHTML = html;
 
+  // ── Leitura
+  var dcl = e.limites.find(function(x){return x.chave==='dcl';});
   document.getElementById('endiv-diag').innerHTML =
-      '<li>DCL: <strong>'+fmtBi(e.dcl)+'</strong> — '+pct(e.dcl_rcl_pct)+' da RCL ajustada</li>'
-    + '<li>Teto legal (200% da RCL): <strong>'+fmtBi(e.limite_senado)+'</strong></li>'
-    + '<li>Dívida bruta (DC): <strong>'+fmtBi(e.dc)+'</strong> ('+pct(e.dc_rcl_pct)+')</li>'
-    + '<li>Situação: <strong style="color:var(--color-positive)">muito confortável</strong> — endividamento baixo para o padrão estadual</li>';
+      '<li><strong>Estoque</strong> (DCL): '+(dcl?pct(dcl.pct):'—')+' da RCL — teto de 200%. Endividamento acumulado baixo para o padrão estadual.</li>'
+    + '<li><strong>Fluxo</strong> (operações de crédito): teto de 16% da RCL por ano, hoje praticamente não utilizado.</li>'
+    + '<li><strong>Garantias</strong>: teto de 22% da RCL. O fluxo de hoje vira o estoque (DCL) de amanhã — por isso os limites operam em série.</li>'
+    + (e.dc!=null ? '<li>Dívida bruta (DC), antes das deduções: <strong>'+fmtBi(e.dc)+'</strong> ('+pct(e.dc_pct)+').</li>' : '');
+
+  // ── Caixa do BRB — projeção sobre fluxo e garantias
+  var brb = num(e.brb_valor), rcl = num(e.rcl_ajustada);
+  var oc = e.limites.find(function(x){return x.chave==='oper_credito';});
+  var gar = e.limites.find(function(x){return x.chave==='garantias';});
+  function proj(l){ if(!l||!rcl) return null; return (num(l.valor)+brb)/rcl*100; }
+  var ocP = proj(oc), garP = proj(gar);
+  document.getElementById('endiv-brb').innerHTML =
+      '<strong>⚠ Operação BRB/FGC (2026):</strong> garantia/operação de crédito do DF de até '
+      + '<strong>'+fmtBi(brb)+'</strong> (Lei 7.845/2026), com contragarantia em FPE/FPM. Ainda <strong>não consta</strong> '
+      + 'no RGF deste período (até o 1º quad/2026) — deve aparecer a partir do <strong>RGF do 2º quad/2026</strong> (≈ set/2026). '
+      + 'Projeção do impacto, se computada integralmente em 2026:'
+      + '<ul style="margin:8px 0 0;padding-left:18px;">'
+      + (ocP!=null ? '<li>Operações de crédito: '+pct(oc.pct)+' → <strong>~'+ocP.toFixed(1).replace('.',',')+'%</strong> (teto 16%) — consome quase todo o limite anual.</li>' : '')
+      + (garP!=null ? '<li>Garantias: '+pct(gar.pct)+' → <strong>~'+garP.toFixed(1).replace('.',',')+'%</strong> (teto 22%).</li>' : '')
+      + '</ul>';
 }
 
 function renderPessoal(rows) {

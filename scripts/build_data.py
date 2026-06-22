@@ -272,10 +272,20 @@ def build():
         lambda: siconfi.fetch_rgf(DEFAULT_RGF_YEAR, DEFAULT_RGF_QUAD, "RGF-Anexo 05"),
         [],
     )
-    # RGF Anexo 02 (DCL) — período mais recente, para a seção de Endividamento
+    # RGF Anexos 02/03/04 — período mais recente, para a seção de Endividamento
     rgf_dcl, ok_rgf_dcl = safely(
         f"RGF {DIVIDA_RGF_YEAR}/{DIVIDA_RGF_QUAD} Anexo 02 (DCL)",
         lambda: siconfi.fetch_rgf(DIVIDA_RGF_YEAR, DIVIDA_RGF_QUAD, "RGF-Anexo 02"),
+        [],
+    )
+    rgf_gar, ok_rgf_gar = safely(
+        f"RGF {DIVIDA_RGF_YEAR}/{DIVIDA_RGF_QUAD} Anexo 03 (Garantias)",
+        lambda: siconfi.fetch_rgf(DIVIDA_RGF_YEAR, DIVIDA_RGF_QUAD, "RGF-Anexo 03"),
+        [],
+    )
+    rgf_oc, ok_rgf_oc = safely(
+        f"RGF {DIVIDA_RGF_YEAR}/{DIVIDA_RGF_QUAD} Anexo 04 (Operações de Crédito)",
+        lambda: siconfi.fetch_rgf(DIVIDA_RGF_YEAR, DIVIDA_RGF_QUAD, "RGF-Anexo 04"),
         [],
     )
 
@@ -285,6 +295,8 @@ def build():
     rgf_dtp_vals = siconfi.extract_rgf_dtp(rgf_dtp) if ok_rgf_dtp else {}
     rgf_caixa_vals = siconfi.extract_rgf_caixa(rgf_caixa) if ok_rgf_caixa else {}
     rgf_dcl_vals = siconfi.extract_rgf_dcl(rgf_dcl, DIVIDA_RGF_QUAD) if ok_rgf_dcl else {}
+    rgf_gar_vals = siconfi.extract_rgf_garantias(rgf_gar, DIVIDA_RGF_QUAD) if ok_rgf_gar else {}
+    rgf_oc_vals = siconfi.extract_rgf_oper_credito(rgf_oc) if ok_rgf_oc else {}
 
     print("\nValores extraídos do SICONFI:")
     for label, vals in [("RREO atual", rreo_current_vals), ("RREO fechamento", rreo_vals),
@@ -452,25 +464,51 @@ def build():
             clp_pos_geral = str(r.get("valor", "")).strip()
             break
 
-    # ---- Endividamento (RGF Anexo 02 — DCL) ----
+    # ---- Endividamento (RGF Anexos 02/03/04) ----
+    # Três limites legais de endividamento subnacional, na forma de uma lista uniforme
+    # para o painel renderar como medidores. `pct` é o % apurado pela STN no RGF.
     endividamento = None
-    if rgf_dcl_vals.get("dcl") is not None:
-        ajust = rgf_dcl_vals.get("rcl_ajustada")
-        lim = rgf_dcl_vals.get("limite_senado")
+    limites = []
+    if rgf_dcl_vals.get("dcl_rcl_pct") is not None:
+        limites.append({
+            "chave": "dcl", "nome": "Dívida Consolidada Líquida (DCL)",
+            "valor": rgf_dcl_vals.get("dcl"), "pct": rgf_dcl_vals.get("dcl_rcl_pct"),
+            "limite_pct": 200, "alerta_pct": 180,
+            "limite_valor": rgf_dcl_vals.get("limite_senado"),
+            "norma": "Res. SF 40/2001, art. 3º",
+        })
+    if rgf_oc_vals.get("oper_credito_pct") is not None:
+        limites.append({
+            "chave": "oper_credito", "nome": "Operações de crédito (no exercício)",
+            "valor": rgf_oc_vals.get("oper_credito_total"), "pct": rgf_oc_vals.get("oper_credito_pct"),
+            "limite_pct": rgf_oc_vals.get("limite_pct") or 16,
+            "alerta_pct": rgf_oc_vals.get("limite_alerta_pct") or 14.4,
+            "limite_valor": rgf_oc_vals.get("limite_senado"),
+            "norma": "Res. SF 43/2001, art. 7º, I",
+        })
+    if rgf_gar_vals.get("garantias_rcl_pct") is not None:
+        limites.append({
+            "chave": "garantias", "nome": "Garantias concedidas",
+            "valor": rgf_gar_vals.get("garantias_total"), "pct": rgf_gar_vals.get("garantias_rcl_pct"),
+            "limite_pct": 22, "alerta_pct": 19.8,
+            "limite_valor": rgf_gar_vals.get("limite_senado"),
+            "norma": "Res. SF 43/2001, art. 9º",
+        })
+    if limites:
+        # RCL ajustada (base dos percentuais) — a mesma nos três anexos
+        rcl_aj = (rgf_dcl_vals.get("rcl_ajustada") or rgf_oc_vals.get("rcl_ajustada")
+                  or rgf_gar_vals.get("rcl_ajustada"))
         endividamento = {
             "periodo": f"{DIVIDA_RGF_YEAR}/{DIVIDA_RGF_QUAD}",
+            "rcl_ajustada": rcl_aj,
             "dc": rgf_dcl_vals.get("dc"),
-            "dcl": rgf_dcl_vals.get("dcl"),
-            "rcl_ajustada": ajust,
-            "dc_rcl_pct": rgf_dcl_vals.get("dc_rcl_pct"),
-            "dcl_rcl_pct": rgf_dcl_vals.get("dcl_rcl_pct"),
-            "limite_senado": lim,
-            # Limites legais (Res. Senado Federal 40/2001): DCL ≤ 200% da RCL;
-            # limite de alerta = 90% do limite (180% da RCL).
-            "limite_pct": 200,
-            "limite_alerta_pct": 180,
+            "dc_pct": rgf_dcl_vals.get("dc_rcl_pct"),
+            "limites": limites,
+            # Operação BRB/FGC (Lei 7.845/2026): garantia/operação de crédito do DF
+            # de até R$ 6,5 bi que ainda não consta no RGF deste período.
+            "brb_valor": 6_500_000_000,
         }
-        sources["endividamento"] = "siconfi-rgf-anexo02"
+        sources["endividamento"] = "siconfi-rgf-anexo02-03-04"
 
     # ---- Compose final data.json ----
     data = {
@@ -490,6 +528,8 @@ def build():
                 "rgf_dtp": rgf_dtp_vals,
                 "rgf_caixa": rgf_caixa_vals,
                 "rgf_dcl": rgf_dcl_vals,
+                "rgf_garantias": rgf_gar_vals,
+                "rgf_oper_credito": rgf_oc_vals,
             },
             "fcdf_dotacao_atualizada": fcdf_dotacao,
             "sources": sources,

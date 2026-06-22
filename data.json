@@ -38,6 +38,22 @@
         "dc_rcl_pct": 25.08,
         "limite_senado": 81060758928.24,
         "limite_alerta": 72954683035.42
+      },
+      "rgf_garantias": {
+        "garantias_total": 939628813.04,
+        "rcl_ajustada": 40530379464.12,
+        "garantias_rcl_pct": 2.32,
+        "limite_senado": 8916683482.11,
+        "limite_alerta": 8025015133.9
+      },
+      "rgf_oper_credito": {
+        "oper_credito_total": 24743651.46,
+        "oper_credito_pct": 0.06,
+        "rcl_ajustada": 40530379464.12,
+        "limite_senado": 6484860714.26,
+        "limite_pct": 16.0,
+        "limite_alerta_pct": 14.4,
+        "aro_limite": 2837126562.49
       }
     },
     "fcdf_dotacao_atualizada": 28412205591.0,
@@ -63,7 +79,7 @@
       "kpi.beneficios": "dados-df-beneficiometro",
       "kpi.caixa": "siconfi-rgf-anexo05",
       "caixa": "siconfi-rgf-anexo05",
-      "endividamento": "siconfi-rgf-anexo02 (FINBRA 2026/1, injetado manualmente enquanto a API estava em 570)"
+      "endividamento": "siconfi-rgf-anexo02-03-04 (FINBRA 2026/1, injetado enquanto a API estava em 570)"
     },
     "divida_rgf_period": "2026/1"
   },
@@ -939,13 +955,41 @@
   },
   "endividamento": {
     "periodo": "2026/1",
-    "dc": 10165243928.74,
-    "dcl": 5358924723.57,
     "rcl_ajustada": 40530379464.12,
-    "dc_rcl_pct": 25.08,
-    "dcl_rcl_pct": 13.22,
-    "limite_senado": 81060758928.24,
-    "limite_pct": 200,
-    "limite_alerta_pct": 180
+    "dc": 10165243928.74,
+    "dc_pct": 25.08,
+    "limites": [
+      {
+        "chave": "dcl",
+        "nome": "Dívida Consolidada Líquida (DCL)",
+        "valor": 5358924723.57,
+        "pct": 13.22,
+        "limite_pct": 200,
+        "alerta_pct": 180,
+        "limite_valor": 81060758928.24,
+        "norma": "Res. SF 40/2001, art. 3º"
+      },
+      {
+        "chave": "oper_credito",
+        "nome": "Operações de crédito (no exercício)",
+        "valor": 24743651.46,
+        "pct": 0.06,
+        "limite_pct": 16.0,
+        "alerta_pct": 14.4,
+        "limite_valor": 6484860714.26,
+        "norma": "Res. SF 43/2001, art. 7º, I"
+      },
+      {
+        "chave": "garantias",
+        "nome": "Garantias concedidas",
+        "valor": 939628813.04,
+        "pct": 2.32,
+        "limite_pct": 22,
+        "alerta_pct": 19.8,
+        "limite_valor": 8916683482.11,
+        "norma": "Res. SF 43/2001, art. 9º"
+      }
+    ],
+    "brb_valor": 6500000000
   }
 }

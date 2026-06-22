@@ -151,6 +151,50 @@ def extract_rgf_dcl(rows, quad):
     }
 
 
+# ── RGF Anexo 03 — Garantias e Contragarantias ───────────────────
+def extract_rgf_garantias(rows, quad):
+    """Extract guarantee indicators from RGF Anexo 03 (limite de 22% da RCL —
+    Res. SF 43/2001, art. 9º). Lê a coluna do quadrimestre de referência.
+
+    Returns: garantias_total, rcl_ajustada, garantias_rcl_pct, limite_senado, limite_alerta.
+    """
+    col = f"Até o {quad}º Quadrimestre"
+    fv = lambda cc: find_value(rows, cod_conta=cc, coluna=col)
+    return {
+        "garantias_total": fv("TotalGarantiasConcedidas"),
+        "rcl_ajustada": fv("ReceitaCorrenteLiquidaAjustadaParaCalculoDosLimitesDeEndividamento"),
+        "garantias_rcl_pct": fv("PercentualDoTotalDasGarantiasSobreARCL"),
+        "limite_senado": fv("LimiteDefinidoPorResolucaoDoSenadoFederal"),
+        "limite_alerta": fv("LimiteDeAlerta"),
+    }
+
+
+# ── RGF Anexo 04 — Operações de Crédito ──────────────────────────
+def extract_rgf_oper_credito(rows):
+    """Extract credit-operations indicators from RGF Anexo 04.
+
+    O anexo tem duas tabelas; a "Apuração do Cumprimento de Limites" traz os valores e
+    percentuais já apurados (colunas "VALOR" e "% SOBRE A RCL AJUSTADA"), de onde lemos:
+      - oper_credito_total / oper_credito_pct: montante das operações realizadas (limite 16%)
+      - limite_senado / limite_pct: limite geral (16% da RCL — Res. SF 43/2001, art. 7º, I)
+      - limite_alerta_pct: 14,4% (90% do limite)
+      - aro_limite: limite das operações por antecipação de receita (7% — art. 10)
+    """
+    fvv = lambda cc: find_value(rows, cod_conta=cc, coluna="VALOR")
+    fvp = lambda cc: find_value(rows, cod_conta=cc, coluna="% SOBRE A RCL AJUSTADA")
+    oc = "TotalConsideradoParaFinsDaApuracaoDoCumprimentoDoLimiteOperacoesDeCredito"
+    lim = "LimiteGeralDefinidoPorResolucaoDoSenadoFederalParaAsOperacoesDeCreditoInternasEExternas"
+    return {
+        "oper_credito_total": fvv(oc),
+        "oper_credito_pct": fvp(oc),
+        "rcl_ajustada": fvv("ReceitaCorrenteLiquidaAjustadaParaCalculoDosLimitesDeEndividamento"),
+        "limite_senado": fvv(lim),
+        "limite_pct": fvp(lim),
+        "limite_alerta_pct": fvp("LimiteDeAlertaOperacoesCredito"),
+        "aro_limite": fvv("LimiteDefinidoPorResolucaoDoSenadoFederalParaAsOperacoesDeCreditoPorAntecipacaoDaReceitaOrcamentaria"),
+    }
+
+
 # ── RGF Anexo 05 — Disponibilidade de Caixa ──────────────────────
 # Coluna name is enormous and SICONFI stores it verbatim.
 CAIXA_COLUNA_LIQUIDA_APOS_RP = (
