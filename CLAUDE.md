@@ -74,6 +74,7 @@ Mirrors the previous Excel sheet names for backward compatibility with the rende
 | `ppps_projecao` | `renderPPPProj` | `ano`, `despesas_ppp`, `rcl`, `pct` |
 | `endividamento` | `renderEndividamento` | `periodo`, `rcl_ajustada`, `dc`, `dc_pct`, `brb_valor`, e `limites[]` com 3 itens (`chave` ∈ {dcl, oper_credito, garantias}, `nome`, `valor`, `pct`, `limite_pct`, `alerta_pct`, `limite_valor`, `norma`). `null` se a API do RGF falhar (a seção se auto-oculta). |
 | `art_167a` | `renderArt167a` | `periodo`, `receita_corrente`, `despesa_corrente`, `pct`, `limite_pct` (95), `base_despesa`. Gatilho do art. 167-A da CF (despesa corrente ÷ receita corrente). `null` se o RREO Anexo 01 falhar (a seção se auto-oculta). |
+| `ajuste_capag` | `renderAjusteCapag` | `nota_atual`, `meta` ("A+"), `poupanca_pct`, `meta_a_pct` (90), `meta_b_pct` (95), `base_receita_corrente`, `ajuste_a_bi`, `ajuste_b_bi`, `indicadores[]`. Caminho CAPAG C→A+ e esforço estimado (R$) na poupança corrente. `null` se faltar a poupança no CSV CAPAG. |
 | `_meta` | (not rendered) | `updated_at`, periods, populacao_df, raw_siconfi, fcdf_dotacao_atualizada, `sources` |
 
 `_meta.sources` shows the provenance of each key/sub-key (`manual`, `csv-local`, `siconfi-rreo-atual`, `portal-transparencia-scrape`, etc.) — useful for debugging.

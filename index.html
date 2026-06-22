@@ -116,6 +116,7 @@ footer{text-align:center;font-size:var(--text-label);color:var(--color-text-mute
   <a href="#capag">CAPAG e Caixa</a>
   <a href="#endividamento">Endividamento</a>
   <a href="#art167a">Art. 167-A</a>
+  <a href="#ajuste2026">Ajuste 2026</a>
   <a href="#pessoal">Pessoal / LRF</a>
   <a href="#beneficios">Benefícios</a>
   <a href="#riscos">Riscos Fiscais</a>
@@ -205,6 +206,22 @@ footer{text-align:center;font-size:var(--text-label);color:var(--color-text-mute
         <div class="card-title">O que esse gatilho aciona</div>
         <ul class="dl" id="a167-diag"></ul>
         <div id="a167-box" style="margin-top:12px;padding:12px;border-radius:var(--radius-input);background:var(--color-warning-bg,#fdf6e3);border:1px solid var(--color-warning);font-size:12.5px;line-height:1.6;color:var(--text);"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="ajuste2026">
+    <div class="section-title">Ajuste fiscal de 2026 — a meta da CAPAG</div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">De onde sair, aonde chegar</div>
+        <div id="capag-path"></div>
+        <div id="capag-inds" style="margin-top:16px;"></div>
+        <div class="fonte">Fonte: CAPAG/Tesouro (2025). Escala oficial A–D; “A+” é o termo usado no acordo do STF para o retorno ao topo.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">O esforço estimado</div>
+        <div id="capag-esforco"></div>
       </div>
     </div>
   </section>
@@ -561,6 +578,69 @@ function renderArt167a(a) {
       + '<div style="margin-top:8px;">As vedações são <strong>anteriores</strong> ao acordo do STF (ACO 3.755, 28/05) sobre o socorro ao BRB, que apenas as reforçou.</div>';
 }
 
+function renderAjusteCapag(a) {
+  var sec = document.getElementById('ajuste2026');
+  if (!a) { if (sec) sec.style.display = 'none'; return; }
+  function biBR(v){ return 'R$ '+num(v).toFixed(2).replace('.',',')+' bi'; }
+  var GREEN = cssVar('--color-positive'), RED = cssVar('--color-negative'), AMBER = cssVar('--color-warning');
+
+  // ── Trilha C → B → A → A+
+  var steps = ['C','B','A','A+'];
+  var atual = clean(a.nota_atual) || 'C', meta = clean(a.meta) || 'A+';
+  var pathHtml = '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">';
+  steps.forEach(function(s, i){
+    var isAtual = s === atual, isMeta = s === meta;
+    var bg = isAtual ? RED : isMeta ? GREEN : 'var(--color-bg-soft,#eee)';
+    var fg = (isAtual || isMeta) ? '#fff' : 'var(--color-text-muted)';
+    var label = isAtual ? ' (hoje)' : isMeta ? ' (meta)' : '';
+    pathHtml += '<span style="background:'+bg+';color:'+fg+';font-weight:700;border-radius:8px;'
+      + 'padding:8px 12px;font-size:14px;font-family:var(--font-mono);white-space:nowrap;">'+s
+      + '<span style="font-size:10px;font-weight:400;">'+label+'</span></span>';
+    if (i < steps.length-1) pathHtml += '<span style="color:var(--color-text-muted);font-size:16px;">→</span>';
+  });
+  pathHtml += '</div>';
+  document.getElementById('capag-path').innerHTML = pathHtml;
+
+  // ── Indicadores que compõem o consolidado
+  var rows = a.indicadores || [];
+  function statusOf(nota){
+    if (nota === 'A') return ['✓ já em A', GREEN];
+    if (nota === 'B') return ['falta chegar a A', AMBER];
+    return ['prende o consolidado em C', RED];
+  }
+  var ind = '<table style="width:100%;border-collapse:collapse;font-size:12.5px;">';
+  ind += '<tr><th style="text-align:left;padding:4px 0;color:var(--color-text-muted);font-weight:600;">Indicador</th>'
+       + '<th style="text-align:center;color:var(--color-text-muted);font-weight:600;">Atual</th>'
+       + '<th style="text-align:center;color:var(--color-text-muted);font-weight:600;">Nota</th>'
+       + '<th style="text-align:right;color:var(--color-text-muted);font-weight:600;">Situação</th></tr>';
+  rows.forEach(function(r){
+    var st = statusOf(clean(r.nota));
+    ind += '<tr style="border-top:1px solid var(--color-border);">'
+      + '<td style="padding:6px 0;">'+clean(r.indicador||r.nome)+'</td>'
+      + '<td style="text-align:center;font-family:var(--font-mono);">'+clean(r.valor)+'</td>'
+      + '<td style="text-align:center;font-weight:700;color:'+st[1]+'">'+clean(r.nota)+'</td>'
+      + '<td style="text-align:right;color:'+st[1]+';font-size:11.5px;">'+st[0]+'</td></tr>';
+  });
+  ind += '</table>';
+  document.getElementById('capag-inds').innerHTML = ind;
+
+  // ── Esforço estimado
+  var aA = num(a.ajuste_a_bi), aB = num(a.ajuste_b_bi);
+  document.getElementById('capag-esforco').innerHTML =
+      '<div style="text-align:center;padding:6px 0 10px;">'
+      + '<div style="font-size:34px;font-weight:700;font-family:var(--font-mono);color:'+RED+';line-height:1;">≈ '+biBR(aA)+'</div>'
+      + '<div style="font-size:12px;color:var(--color-text-muted);margin-top:4px;">de ajuste/ano na conta corrente para a <strong>poupança corrente</strong> chegar à faixa <strong>A</strong> (&lt; 90%)</div></div>'
+    + '<ul class="dl" style="margin-top:6px;">'
+      + '<li>Poupança hoje: <strong>'+pctBR(a.poupanca_pct)+'</strong> (nota C). Para só <strong>sair de C → B</strong> (&lt; 95%): ≈ <strong>'+biBR(aB)+'</strong>.</li>'
+      + '<li>Para o <strong>consolidado</strong> ir a A/A+ não basta a poupança: a <strong>liquidez</strong> (hoje B) também precisa subir para A — frente de <em>recomposição de caixa</em>, separada.</li>'
+      + '<li>O <strong>endividamento já é A</strong> (30,85% vs. teto 60%) — não é gargalo.</li>'
+      + '</ul>'
+    + '<div style="margin-top:10px;padding:10px;border-radius:var(--radius-input);background:var(--color-bg-soft,#f3f4f6);font-size:11.5px;line-height:1.5;color:var(--color-text-muted);">'
+      + '⚠ Estimativa de ordem de grandeza: a conversão de pontos percentuais em R$ usa a receita corrente (~'+biBR((num(a.base_receita_corrente)/1e9))+') como base; a CAPAG usa <em>receita corrente ajustada</em> e apuração de 12 meses, então o valor exato pode variar.</div>';
+}
+
+function pctBR(v){ return num(v).toFixed(2).replace('.',',')+'%'; }
+
 function renderPessoal(rows) {
   var p = {};
   rows.forEach(function(r){ p[clean(r.chave)] = num(r.valor); });
@@ -897,6 +977,7 @@ async function init() {
     renderCaixaChart(d.caixa || []);
     renderEndividamento(d.endividamento);
     renderArt167a(d.art_167a);
+    renderAjusteCapag(d.ajuste_capag);
     renderPessoal(d.pessoal || []);
     renderCLP(d.clp_ranking || []);
     renderPPPs(d.ppps || []);

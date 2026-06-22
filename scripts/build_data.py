@@ -528,6 +528,36 @@ def build():
         }
         sources["art_167a"] = "siconfi-rreo-anexo01-calc"
 
+    # ---- Ajuste CAPAG 2026 (caminho C → A / "A+" do acordo STF) ----
+    # A poupança corrente (Indicador 2 da CAPAG) é o que prende o DF em C. Estima-se o
+    # esforço em R$ para o indicador cruzar a faixa B (<95%) e a faixa A (<90%), usando a
+    # receita corrente como base de conversão (aproximação — a CAPAG usa receita ajustada).
+    def _pct(s):
+        try:
+            return float(str(s).replace("%", "").replace(",", ".").strip())
+        except (ValueError, AttributeError):
+            return None
+    capag_rows = sheets.get("capag", [])
+    poup_row = next((r for r in capag_rows if "oupança" in str(r.get("indicador", ""))), None)
+    ajuste_capag = None
+    if poup_row:
+        pc = _pct(poup_row.get("valor"))
+        rc_corr = rreo_correntes_vals.get("receita_corrente")
+        ajuste_capag = {
+            "nota_atual": capag_nota,           # consolidada (ex.: "C")
+            "meta": "A+",                        # termo do acordo STF; na escala oficial = A
+            "poupanca_pct": pc,
+            "meta_b_pct": 95, "meta_a_pct": 90,  # faixas da poupança corrente (CAPAG)
+            "base_receita_corrente": rc_corr,
+            "ajuste_b_bi": round((pc - 95) / 100 * rc_corr / 1e9, 2) if (pc and rc_corr and pc > 95) else 0,
+            "ajuste_a_bi": round((pc - 90) / 100 * rc_corr / 1e9, 2) if (pc and rc_corr and pc > 90) else 0,
+            "indicadores": [
+                {"nome": r.get("indicador"), "valor": r.get("valor"), "nota": r.get("nota")}
+                for r in capag_rows
+            ],
+        }
+        sources["ajuste_capag"] = "capag-csv + siconfi-rreo (calc estimado)"
+
     # ---- Compose final data.json ----
     data = {
         "_meta": {
@@ -567,6 +597,7 @@ def build():
         "riscos_fiscais": _build_riscos_fiscais(sheets.get("riscos_fiscais", [])),
         "endividamento": endividamento,  # None se a API do RGF Anexo 02 falhar
         "art_167a": art_167a,            # None se o RREO Anexo 01 falhar
+        "ajuste_capag": ajuste_capag,    # meta C → A+ e esforço estimado na poupança
     }
 
     with open(OUTPUT, "w", encoding="utf-8") as f:

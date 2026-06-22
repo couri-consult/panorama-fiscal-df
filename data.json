@@ -85,7 +85,8 @@
       "kpi.caixa": "siconfi-rgf-anexo05",
       "caixa": "siconfi-rgf-anexo05",
       "endividamento": "siconfi-rgf-anexo02-03-04 (FINBRA 2026/1, injetado enquanto a API estava em 570)",
-      "art_167a": "siconfi-rreo-anexo01 (receita) + audiência CEOF 11/03/2026 (despesa); injetado enquanto a API estava em 570"
+      "art_167a": "siconfi-rreo-anexo01 (receita) + audiência CEOF 11/03/2026 (despesa); injetado enquanto a API estava em 570",
+      "ajuste_capag": "capag-csv + siconfi-rreo (calc estimado; injetado enquanto a API estava em 570)"
     },
     "divida_rgf_period": "2026/1"
   },
@@ -1005,5 +1006,32 @@
     "pct": 97.0,
     "limite_pct": 95,
     "base_despesa": "audiência CEOF (3º quad/2025)"
+  },
+  "ajuste_capag": {
+    "nota_atual": "C",
+    "meta": "A+",
+    "poupanca_pct": 95.27,
+    "meta_b_pct": 95,
+    "meta_a_pct": 90,
+    "base_receita_corrente": 38539795255.71,
+    "ajuste_b_bi": 0.1,
+    "ajuste_a_bi": 2.03,
+    "indicadores": [
+      {
+        "indicador": "Endividamento (% da RCL)",
+        "valor": "30,85%",
+        "nota": "A"
+      },
+      {
+        "indicador": "Poupança Corrente (Despesa/Receita)",
+        "valor": "95,27%",
+        "nota": "C"
+      },
+      {
+        "indicador": "Liquidez Relativa (Dívida/RCL)",
+        "valor": "1,01%",
+        "nota": "B"
+      }
+    ]
   }
 }
