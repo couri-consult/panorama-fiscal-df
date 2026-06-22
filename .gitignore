@@ -14,3 +14,6 @@ Thumbs.db
 # Sensitive (env tokens for API loaders)
 .env
 *.token
+
+# Relatório/estudo local — não publicar no repositório
+docs/ajuste-fiscal-df-2026/
